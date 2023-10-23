@@ -3,9 +3,9 @@
 ## ![Method Architecture](image.png)
 
 ### TODO
-- [*] Add icdar2015 dataset
-- [*] Add CLIP Model
-- [*] Distributed training
+- [x] Add icdar2015 dataset
+- [x] Add CLIP Model
+- [x] Distributed training
 - [ ] Add contrastive learning loss
 - [ ] Add MLM learning loss
 - [ ] Add Product dataset
