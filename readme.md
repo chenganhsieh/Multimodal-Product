@@ -6,7 +6,7 @@
 - [x] Add icdar2015 dataset
 - [x] Add CLIP Model
 - [x] Distributed training
-- [ ] Add contrastive learning loss
+- [x] Add contrastive learning loss
 - [ ] Add MLM learning loss
 - [ ] Add Product dataset
 - [ ] Add Product detection
