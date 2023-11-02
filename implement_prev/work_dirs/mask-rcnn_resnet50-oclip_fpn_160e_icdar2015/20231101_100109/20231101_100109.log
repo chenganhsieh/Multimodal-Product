@@ -1,0 +1,923 @@
+2023/11/01 10:01:09 - mmengine - INFO - 
+------------------------------------------------------------
+System environment:
+    sys.platform: linux
+    Python: 3.8.18 (default, Sep 11 2023, 13:40:15) [GCC 11.2.0]
+    CUDA available: True
+    numpy_random_seed: 1036023124
+    GPU 0,1,2,3,4,5: NVIDIA GeForce RTX 4090
+    CUDA_HOME: /usr/local/cuda-11.3
+    NVCC: Cuda compilation tools, release 11.3, V11.3.58
+    GCC: gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+    PyTorch: 1.10.2
+    PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2023.1-Product Build 20230303 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.2.3 (Git Hash 7336ca9f055cf1bfa13efb658fe15dc9b41f0740)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.3
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 8.2
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.3, CUDNN_VERSION=8.2.0, CXX_COMPILER=/opt/rh/devtoolset-7/root/usr/bin/c++, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DEDGE_PROFILER_USE_KINETO -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.10.2, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+    TorchVision: 0.11.3
+    OpenCV: 4.8.1
+    MMEngine: 0.9.0
+
+Runtime environment:
+    cudnn_benchmark: False
+    mp_cfg: {'mp_start_method': 'fork', 'opencv_num_threads': 0}
+    dist_cfg: {'backend': 'nccl'}
+    seed: 1036023124
+    Distributed launcher: none
+    Distributed training: False
+    GPU number: 1
+------------------------------------------------------------
+
+2023/11/01 10:01:10 - mmengine - INFO - Config:
+auto_scale_lr = dict(base_batch_size=8)
+default_hooks = dict(
+    checkpoint=dict(interval=20, type='CheckpointHook'),
+    logger=dict(interval=5, type='LoggerHook'),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    sync_buffer=dict(type='SyncBuffersHook'),
+    timer=dict(type='IterTimerHook'),
+    visualization=dict(
+        draw_gt=False,
+        draw_pred=False,
+        enable=False,
+        interval=1,
+        show=False,
+        type='VisualizationHook'))
+default_scope = 'mmocr'
+env_cfg = dict(
+    cudnn_benchmark=False,
+    dist_cfg=dict(backend='nccl'),
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0))
+icdar2015_textdet_data_root = 'data/icdar2015'
+icdar2015_textdet_test = dict(
+    ann_file='textdet_test.json',
+    data_root='data/icdar2015',
+    pipeline=[
+        dict(color_type='color_ignore_orientation', type='LoadImageFromFile'),
+        dict(keep_ratio=True, scale=(
+            1920,
+            1920,
+        ), type='Resize'),
+        dict(
+            type='LoadOCRAnnotations',
+            with_bbox=True,
+            with_label=True,
+            with_polygon=True),
+        dict(
+            meta_keys=(
+                'img_path',
+                'ori_shape',
+                'img_shape',
+                'scale_factor',
+            ),
+            type='PackTextDetInputs'),
+    ],
+    test_mode=True,
+    type='OCRDataset')
+icdar2015_textdet_train = dict(
+    ann_file='textdet_train.json',
+    data_root='data/icdar2015',
+    filter_cfg=dict(filter_empty_gt=True, min_size=32),
+    pipeline=[
+        dict(color_type='color_ignore_orientation', type='LoadImageFromFile'),
+        dict(
+            type='LoadOCRAnnotations',
+            with_bbox=True,
+            with_label=True,
+            with_polygon=True),
+        dict(
+            brightness=0.12549019607843137,
+            contrast=0.5,
+            op='ColorJitter',
+            saturation=0.5,
+            type='TorchVisionWrapper'),
+        dict(
+            keep_ratio=True,
+            ratio_range=(
+                1.0,
+                4.125,
+            ),
+            scale=(
+                640,
+                640,
+            ),
+            type='RandomResize'),
+        dict(prob=0.5, type='RandomFlip'),
+        dict(target_size=(
+            640,
+            640,
+        ), type='TextDetRandomCrop'),
+        dict(poly2mask=True, type='MMOCR2MMDet'),
+        dict(
+            meta_keys=(
+                'img_path',
+                'ori_shape',
+                'img_shape',
+                'flip',
+                'scale_factor',
+                'flip_direction',
+            ),
+            type='mmdet.PackDetInputs'),
+    ],
+    type='OCRDataset')
+launcher = 'none'
+load_from = 'checkpoints/mask-rcnn_resnet50-oclip_fpn_160e_icdar2015_20221101_131357-a19f7802.pth'
+log_level = 'INFO'
+log_processor = dict(by_epoch=True, type='LogProcessor', window_size=10)
+mask_rcnn = dict(
+    _scope_='mmdet',
+    backbone=dict(
+        depth=50,
+        frozen_stages=1,
+        init_cfg=dict(checkpoint='torchvision://resnet50', type='Pretrained'),
+        norm_cfg=dict(requires_grad=True, type='BN'),
+        norm_eval=True,
+        num_stages=4,
+        out_indices=(
+            0,
+            1,
+            2,
+            3,
+        ),
+        style='pytorch',
+        type='ResNet'),
+    data_preprocessor=dict(
+        bgr_to_rgb=True,
+        mean=[
+            123.675,
+            116.28,
+            103.53,
+        ],
+        pad_mask=False,
+        pad_size_divisor=32,
+        std=[
+            58.395,
+            57.12,
+            57.375,
+        ],
+        type='DetDataPreprocessor'),
+    neck=dict(
+        in_channels=[
+            256,
+            512,
+            1024,
+            2048,
+        ],
+        num_outs=5,
+        out_channels=256,
+        type='FPN'),
+    roi_head=dict(
+        bbox_head=dict(
+            bbox_coder=dict(
+                target_means=[
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                ],
+                target_stds=[
+                    0.1,
+                    0.1,
+                    0.2,
+                    0.2,
+                ],
+                type='DeltaXYWHBBoxCoder'),
+            fc_out_channels=1024,
+            in_channels=256,
+            loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+            loss_cls=dict(
+                loss_weight=1.0, type='CrossEntropyLoss', use_sigmoid=False),
+            num_classes=1,
+            reg_class_agnostic=False,
+            roi_feat_size=7,
+            type='Shared2FCBBoxHead'),
+        bbox_roi_extractor=dict(
+            featmap_strides=[
+                4,
+                8,
+                16,
+                32,
+            ],
+            out_channels=256,
+            roi_layer=dict(output_size=7, sampling_ratio=0, type='RoIAlign'),
+            type='SingleRoIExtractor'),
+        mask_head=dict(
+            conv_out_channels=256,
+            in_channels=256,
+            loss_mask=dict(
+                loss_weight=1.0, type='CrossEntropyLoss', use_mask=True),
+            num_classes=1,
+            num_convs=4,
+            type='FCNMaskHead'),
+        mask_roi_extractor=dict(
+            featmap_strides=[
+                4,
+                8,
+                16,
+                32,
+            ],
+            out_channels=256,
+            roi_layer=dict(output_size=14, sampling_ratio=0, type='RoIAlign'),
+            type='SingleRoIExtractor'),
+        type='StandardRoIHead'),
+    rpn_head=dict(
+        anchor_generator=dict(
+            ratios=[
+                0.17,
+                0.44,
+                1.13,
+                2.9,
+                7.46,
+            ],
+            scales=[
+                4,
+            ],
+            strides=[
+                4,
+                8,
+                16,
+                32,
+                64,
+            ],
+            type='AnchorGenerator'),
+        bbox_coder=dict(
+            target_means=[
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+            ],
+            target_stds=[
+                1.0,
+                1.0,
+                1.0,
+                1.0,
+            ],
+            type='DeltaXYWHBBoxCoder'),
+        feat_channels=256,
+        in_channels=256,
+        loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+        loss_cls=dict(
+            loss_weight=1.0, type='CrossEntropyLoss', use_sigmoid=True),
+        type='RPNHead'),
+    test_cfg=dict(
+        rcnn=dict(
+            mask_thr_binary=0.5,
+            max_per_img=100,
+            nms=dict(iou_threshold=0.5, type='nms'),
+            score_thr=0.05),
+        rpn=dict(
+            max_per_img=1000,
+            min_bbox_size=0,
+            nms=dict(iou_threshold=0.7, type='nms'),
+            nms_pre=1000)),
+    train_cfg=dict(
+        rcnn=dict(
+            assigner=dict(
+                ignore_iof_thr=-1,
+                match_low_quality=True,
+                min_pos_iou=0.5,
+                neg_iou_thr=0.5,
+                pos_iou_thr=0.5,
+                type='MaxIoUAssigner'),
+            debug=False,
+            mask_size=28,
+            pos_weight=-1,
+            sampler=dict(
+                add_gt_as_proposals=True,
+                neg_pos_ub=-1,
+                num=512,
+                pos_fraction=0.25,
+                type='RandomSampler')),
+        rpn=dict(
+            allowed_border=-1,
+            assigner=dict(
+                ignore_iof_thr=-1,
+                match_low_quality=True,
+                min_pos_iou=0.3,
+                neg_iou_thr=0.3,
+                pos_iou_thr=0.7,
+                type='MaxIoUAssigner'),
+            debug=False,
+            pos_weight=-1,
+            sampler=dict(
+                add_gt_as_proposals=False,
+                neg_pos_ub=-1,
+                num=256,
+                pos_fraction=0.5,
+                type='RandomSampler')),
+        rpn_proposal=dict(
+            max_per_img=1000,
+            min_bbox_size=0,
+            nms=dict(iou_threshold=0.7, type='nms'),
+            nms_pre=2000)),
+    type='MaskRCNN')
+model = dict(
+    cfg=dict(
+        _scope_='mmdet',
+        backbone=dict(
+            _scope_='mmocr',
+            init_cfg=dict(
+                checkpoint=
+                'https://download.openmmlab.com/mmocr/backbone/resnet50-oclip-7ba0c533.pth',
+                type='Pretrained'),
+            type='CLIPResNet'),
+        data_preprocessor=dict(
+            bgr_to_rgb=True,
+            mean=[
+                123.675,
+                116.28,
+                103.53,
+            ],
+            pad_mask=False,
+            pad_size_divisor=32,
+            std=[
+                58.395,
+                57.12,
+                57.375,
+            ],
+            type='DetDataPreprocessor'),
+        neck=dict(
+            in_channels=[
+                256,
+                512,
+                1024,
+                2048,
+            ],
+            num_outs=5,
+            out_channels=256,
+            type='FPN'),
+        roi_head=dict(
+            bbox_head=dict(
+                bbox_coder=dict(
+                    target_means=[
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                    ],
+                    target_stds=[
+                        0.1,
+                        0.1,
+                        0.2,
+                        0.2,
+                    ],
+                    type='DeltaXYWHBBoxCoder'),
+                fc_out_channels=1024,
+                in_channels=256,
+                loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+                loss_cls=dict(
+                    loss_weight=1.0,
+                    type='CrossEntropyLoss',
+                    use_sigmoid=False),
+                num_classes=1,
+                reg_class_agnostic=False,
+                roi_feat_size=7,
+                type='Shared2FCBBoxHead'),
+            bbox_roi_extractor=dict(
+                featmap_strides=[
+                    4,
+                    8,
+                    16,
+                    32,
+                ],
+                out_channels=256,
+                roi_layer=dict(
+                    output_size=7, sampling_ratio=0, type='RoIAlign'),
+                type='SingleRoIExtractor'),
+            mask_head=dict(
+                conv_out_channels=256,
+                in_channels=256,
+                loss_mask=dict(
+                    loss_weight=1.0, type='CrossEntropyLoss', use_mask=True),
+                num_classes=1,
+                num_convs=4,
+                type='FCNMaskHead'),
+            mask_roi_extractor=dict(
+                featmap_strides=[
+                    4,
+                    8,
+                    16,
+                    32,
+                ],
+                out_channels=256,
+                roi_layer=dict(
+                    output_size=14, sampling_ratio=0, type='RoIAlign'),
+                type='SingleRoIExtractor'),
+            type='StandardRoIHead'),
+        rpn_head=dict(
+            anchor_generator=dict(
+                ratios=[
+                    0.17,
+                    0.44,
+                    1.13,
+                    2.9,
+                    7.46,
+                ],
+                scales=[
+                    4,
+                ],
+                strides=[
+                    4,
+                    8,
+                    16,
+                    32,
+                    64,
+                ],
+                type='AnchorGenerator'),
+            bbox_coder=dict(
+                target_means=[
+                    0.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                ],
+                target_stds=[
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                ],
+                type='DeltaXYWHBBoxCoder'),
+            feat_channels=256,
+            in_channels=256,
+            loss_bbox=dict(loss_weight=1.0, type='L1Loss'),
+            loss_cls=dict(
+                loss_weight=1.0, type='CrossEntropyLoss', use_sigmoid=True),
+            type='RPNHead'),
+        test_cfg=dict(
+            rcnn=dict(
+                mask_thr_binary=0.5,
+                max_per_img=100,
+                nms=dict(iou_threshold=0.5, type='nms'),
+                score_thr=0.05),
+            rpn=dict(
+                max_per_img=1000,
+                min_bbox_size=0,
+                nms=dict(iou_threshold=0.7, type='nms'),
+                nms_pre=1000)),
+        train_cfg=dict(
+            rcnn=dict(
+                assigner=dict(
+                    ignore_iof_thr=-1,
+                    match_low_quality=True,
+                    min_pos_iou=0.5,
+                    neg_iou_thr=0.5,
+                    pos_iou_thr=0.5,
+                    type='MaxIoUAssigner'),
+                debug=False,
+                mask_size=28,
+                pos_weight=-1,
+                sampler=dict(
+                    add_gt_as_proposals=True,
+                    neg_pos_ub=-1,
+                    num=512,
+                    pos_fraction=0.25,
+                    type='RandomSampler')),
+            rpn=dict(
+                allowed_border=-1,
+                assigner=dict(
+                    ignore_iof_thr=-1,
+                    match_low_quality=True,
+                    min_pos_iou=0.3,
+                    neg_iou_thr=0.3,
+                    pos_iou_thr=0.7,
+                    type='MaxIoUAssigner'),
+                debug=False,
+                pos_weight=-1,
+                sampler=dict(
+                    add_gt_as_proposals=False,
+                    neg_pos_ub=-1,
+                    num=256,
+                    pos_fraction=0.5,
+                    type='RandomSampler')),
+            rpn_proposal=dict(
+                max_per_img=1000,
+                min_bbox_size=0,
+                nms=dict(iou_threshold=0.7, type='nms'),
+                nms_pre=2000)),
+        type='MaskRCNN'),
+    text_repr_type='poly',
+    type='MMDetWrapper')
+optim_wrapper = dict(
+    optimizer=dict(lr=0.02, momentum=0.9, type='SGD', weight_decay=0.0001),
+    type='OptimWrapper')
+param_scheduler = [
+    dict(by_epoch=False, end=500, start_factor=0.001, type='LinearLR'),
+    dict(end=160, milestones=[
+        80,
+        128,
+    ], type='MultiStepLR'),
+]
+randomness = dict(seed=None)
+resume = False
+test_cfg = dict(type='TestLoop')
+test_dataloader = dict(
+    batch_size=1,
+    dataset=dict(
+        ann_file='textdet_test.json',
+        data_root='data/icdar2015',
+        pipeline=[
+            dict(
+                color_type='color_ignore_orientation',
+                type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                1920,
+                1920,
+            ), type='Resize'),
+            dict(
+                type='LoadOCRAnnotations',
+                with_bbox=True,
+                with_label=True,
+                with_polygon=True),
+            dict(
+                meta_keys=(
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackTextDetInputs'),
+        ],
+        test_mode=True,
+        type='OCRDataset'),
+    num_workers=1,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+test_evaluator = dict(type='HmeanIOUMetric')
+test_pipeline = [
+    dict(color_type='color_ignore_orientation', type='LoadImageFromFile'),
+    dict(keep_ratio=True, scale=(
+        1920,
+        1920,
+    ), type='Resize'),
+    dict(
+        type='LoadOCRAnnotations',
+        with_bbox=True,
+        with_label=True,
+        with_polygon=True),
+    dict(
+        meta_keys=(
+            'img_path',
+            'ori_shape',
+            'img_shape',
+            'scale_factor',
+        ),
+        type='PackTextDetInputs'),
+]
+train_cfg = dict(max_epochs=160, type='EpochBasedTrainLoop', val_interval=20)
+train_dataloader = dict(
+    batch_size=8,
+    dataset=dict(
+        ann_file='textdet_train.json',
+        data_root='data/icdar2015',
+        filter_cfg=dict(filter_empty_gt=True, min_size=32),
+        pipeline=[
+            dict(
+                color_type='color_ignore_orientation',
+                type='LoadImageFromFile'),
+            dict(
+                type='LoadOCRAnnotations',
+                with_bbox=True,
+                with_label=True,
+                with_polygon=True),
+            dict(
+                brightness=0.12549019607843137,
+                contrast=0.5,
+                op='ColorJitter',
+                saturation=0.5,
+                type='TorchVisionWrapper'),
+            dict(
+                keep_ratio=True,
+                ratio_range=(
+                    1.0,
+                    4.125,
+                ),
+                scale=(
+                    640,
+                    640,
+                ),
+                type='RandomResize'),
+            dict(prob=0.5, type='RandomFlip'),
+            dict(target_size=(
+                640,
+                640,
+            ), type='TextDetRandomCrop'),
+            dict(poly2mask=True, type='MMOCR2MMDet'),
+            dict(
+                meta_keys=(
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'flip',
+                    'scale_factor',
+                    'flip_direction',
+                ),
+                type='mmdet.PackDetInputs'),
+        ],
+        type='OCRDataset'),
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(shuffle=True, type='DefaultSampler'))
+train_pipeline = [
+    dict(color_type='color_ignore_orientation', type='LoadImageFromFile'),
+    dict(
+        type='LoadOCRAnnotations',
+        with_bbox=True,
+        with_label=True,
+        with_polygon=True),
+    dict(
+        brightness=0.12549019607843137,
+        contrast=0.5,
+        op='ColorJitter',
+        saturation=0.5,
+        type='TorchVisionWrapper'),
+    dict(
+        keep_ratio=True,
+        ratio_range=(
+            1.0,
+            4.125,
+        ),
+        scale=(
+            640,
+            640,
+        ),
+        type='RandomResize'),
+    dict(prob=0.5, type='RandomFlip'),
+    dict(target_size=(
+        640,
+        640,
+    ), type='TextDetRandomCrop'),
+    dict(poly2mask=True, type='MMOCR2MMDet'),
+    dict(
+        meta_keys=(
+            'img_path',
+            'ori_shape',
+            'img_shape',
+            'flip',
+            'scale_factor',
+            'flip_direction',
+        ),
+        type='mmdet.PackDetInputs'),
+]
+val_cfg = dict(type='ValLoop')
+val_dataloader = dict(
+    batch_size=1,
+    dataset=dict(
+        ann_file='textdet_test.json',
+        data_root='data/icdar2015',
+        pipeline=[
+            dict(
+                color_type='color_ignore_orientation',
+                type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                1920,
+                1920,
+            ), type='Resize'),
+            dict(
+                type='LoadOCRAnnotations',
+                with_bbox=True,
+                with_label=True,
+                with_polygon=True),
+            dict(
+                meta_keys=(
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackTextDetInputs'),
+        ],
+        test_mode=True,
+        type='OCRDataset'),
+    num_workers=1,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+val_evaluator = dict(type='HmeanIOUMetric')
+vis_backends = [
+    dict(type='LocalVisBackend'),
+]
+visualizer = dict(
+    name='visualizer',
+    type='TextDetLocalVisualizer',
+    vis_backends=[
+        dict(type='LocalVisBackend'),
+    ])
+work_dir = './work_dirs/mask-rcnn_resnet50-oclip_fpn_160e_icdar2015'
+
+2023/11/01 10:01:13 - mmengine - INFO - Distributed training is not used, all SyncBatchNorm (SyncBN) layers in the model will be automatically reverted to BatchNormXd layers if they are used.
+2023/11/01 10:01:13 - mmengine - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+before_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DistSamplerSeedHook                
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) SyncBuffersHook                    
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) SyncBuffersHook                    
+ -------------------- 
+before_val_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) VisualizationHook                  
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_val_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_test_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_test_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_test_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) VisualizationHook                  
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_run:
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+2023/11/01 10:01:14 - mmengine - INFO - Load checkpoint from checkpoints/mask-rcnn_resnet50-oclip_fpn_160e_icdar2015_20221101_131357-a19f7802.pth
+2023/11/01 10:01:15 - mmengine - INFO - Epoch(test) [  5/500]    eta: 0:01:59  time: 0.2405  data_time: 0.0863  memory: 864  
+2023/11/01 10:01:15 - mmengine - INFO - Epoch(test) [ 10/500]    eta: 0:01:11  time: 0.1457  data_time: 0.0440  memory: 864  
+2023/11/01 10:01:15 - mmengine - INFO - Epoch(test) [ 15/500]    eta: 0:00:54  time: 0.0495  data_time: 0.0016  memory: 864  
+2023/11/01 10:01:16 - mmengine - INFO - Epoch(test) [ 20/500]    eta: 0:00:49  time: 0.0622  data_time: 0.0015  memory: 903  
+2023/11/01 10:01:16 - mmengine - INFO - Epoch(test) [ 25/500]    eta: 0:00:44  time: 0.0625  data_time: 0.0014  memory: 864  
+2023/11/01 10:01:16 - mmengine - INFO - Epoch(test) [ 30/500]    eta: 0:00:40  time: 0.0525  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:17 - mmengine - INFO - Epoch(test) [ 35/500]    eta: 0:00:37  time: 0.0516  data_time: 0.0016  memory: 864  
+2023/11/01 10:01:17 - mmengine - INFO - Epoch(test) [ 40/500]    eta: 0:00:35  time: 0.0456  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:17 - mmengine - INFO - Epoch(test) [ 45/500]    eta: 0:00:33  time: 0.0435  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:17 - mmengine - INFO - Epoch(test) [ 50/500]    eta: 0:00:31  time: 0.0447  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:17 - mmengine - INFO - Epoch(test) [ 55/500]    eta: 0:00:30  time: 0.0457  data_time: 0.0014  memory: 864  
+2023/11/01 10:01:18 - mmengine - INFO - Epoch(test) [ 60/500]    eta: 0:00:29  time: 0.0504  data_time: 0.0014  memory: 864  
+2023/11/01 10:01:18 - mmengine - INFO - Epoch(test) [ 65/500]    eta: 0:00:28  time: 0.0512  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:18 - mmengine - INFO - Epoch(test) [ 70/500]    eta: 0:00:27  time: 0.0491  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:18 - mmengine - INFO - Epoch(test) [ 75/500]    eta: 0:00:26  time: 0.0491  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:19 - mmengine - INFO - Epoch(test) [ 80/500]    eta: 0:00:26  time: 0.0473  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:19 - mmengine - INFO - Epoch(test) [ 85/500]    eta: 0:00:25  time: 0.0474  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:19 - mmengine - INFO - Epoch(test) [ 90/500]    eta: 0:00:24  time: 0.0475  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:19 - mmengine - INFO - Epoch(test) [ 95/500]    eta: 0:00:24  time: 0.0470  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:20 - mmengine - INFO - Epoch(test) [100/500]    eta: 0:00:23  time: 0.0455  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:20 - mmengine - INFO - Epoch(test) [105/500]    eta: 0:00:23  time: 0.0480  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:20 - mmengine - INFO - Epoch(test) [110/500]    eta: 0:00:23  time: 0.0627  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:20 - mmengine - INFO - Epoch(test) [115/500]    eta: 0:00:22  time: 0.0600  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:21 - mmengine - INFO - Epoch(test) [120/500]    eta: 0:00:22  time: 0.0501  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:21 - mmengine - INFO - Epoch(test) [125/500]    eta: 0:00:21  time: 0.0522  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:21 - mmengine - INFO - Epoch(test) [130/500]    eta: 0:00:21  time: 0.0463  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:22 - mmengine - INFO - Epoch(test) [135/500]    eta: 0:00:21  time: 0.0564  data_time: 0.0015  memory: 972  
+2023/11/01 10:01:22 - mmengine - INFO - Epoch(test) [140/500]    eta: 0:00:20  time: 0.0606  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:22 - mmengine - INFO - Epoch(test) [145/500]    eta: 0:00:20  time: 0.0519  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:22 - mmengine - INFO - Epoch(test) [150/500]    eta: 0:00:20  time: 0.0511  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:23 - mmengine - INFO - Epoch(test) [155/500]    eta: 0:00:19  time: 0.0491  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:23 - mmengine - INFO - Epoch(test) [160/500]    eta: 0:00:19  time: 0.0526  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:23 - mmengine - INFO - Epoch(test) [165/500]    eta: 0:00:19  time: 0.0511  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:23 - mmengine - INFO - Epoch(test) [170/500]    eta: 0:00:18  time: 0.0482  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:24 - mmengine - INFO - Epoch(test) [175/500]    eta: 0:00:18  time: 0.0499  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:24 - mmengine - INFO - Epoch(test) [180/500]    eta: 0:00:17  time: 0.0456  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:24 - mmengine - INFO - Epoch(test) [185/500]    eta: 0:00:17  time: 0.0442  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:24 - mmengine - INFO - Epoch(test) [190/500]    eta: 0:00:17  time: 0.0450  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:24 - mmengine - INFO - Epoch(test) [195/500]    eta: 0:00:16  time: 0.0471  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:25 - mmengine - INFO - Epoch(test) [200/500]    eta: 0:00:16  time: 0.0473  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:25 - mmengine - INFO - Epoch(test) [205/500]    eta: 0:00:16  time: 0.0452  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:25 - mmengine - INFO - Epoch(test) [210/500]    eta: 0:00:15  time: 0.0443  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:25 - mmengine - INFO - Epoch(test) [215/500]    eta: 0:00:15  time: 0.0441  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:26 - mmengine - INFO - Epoch(test) [220/500]    eta: 0:00:15  time: 0.0469  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:26 - mmengine - INFO - Epoch(test) [225/500]    eta: 0:00:14  time: 0.0468  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:26 - mmengine - INFO - Epoch(test) [230/500]    eta: 0:00:14  time: 0.0451  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:26 - mmengine - INFO - Epoch(test) [235/500]    eta: 0:00:14  time: 0.0515  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:27 - mmengine - INFO - Epoch(test) [240/500]    eta: 0:00:13  time: 0.0557  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:27 - mmengine - INFO - Epoch(test) [245/500]    eta: 0:00:13  time: 0.0533  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:27 - mmengine - INFO - Epoch(test) [250/500]    eta: 0:00:13  time: 0.0504  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:27 - mmengine - INFO - Epoch(test) [255/500]    eta: 0:00:13  time: 0.0471  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:28 - mmengine - INFO - Epoch(test) [260/500]    eta: 0:00:12  time: 0.0472  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:28 - mmengine - INFO - Epoch(test) [265/500]    eta: 0:00:12  time: 0.0608  data_time: 0.0015  memory: 1194  
+2023/11/01 10:01:28 - mmengine - INFO - Epoch(test) [270/500]    eta: 0:00:12  time: 0.0586  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:28 - mmengine - INFO - Epoch(test) [275/500]    eta: 0:00:12  time: 0.0446  data_time: 0.0014  memory: 864  
+2023/11/01 10:01:29 - mmengine - INFO - Epoch(test) [280/500]    eta: 0:00:11  time: 0.0491  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:29 - mmengine - INFO - Epoch(test) [285/500]    eta: 0:00:11  time: 0.0498  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:29 - mmengine - INFO - Epoch(test) [290/500]    eta: 0:00:11  time: 0.0475  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:29 - mmengine - INFO - Epoch(test) [295/500]    eta: 0:00:10  time: 0.0458  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:30 - mmengine - INFO - Epoch(test) [300/500]    eta: 0:00:10  time: 0.0449  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:30 - mmengine - INFO - Epoch(test) [305/500]    eta: 0:00:10  time: 0.0532  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:30 - mmengine - INFO - Epoch(test) [310/500]    eta: 0:00:10  time: 0.0538  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:30 - mmengine - INFO - Epoch(test) [315/500]    eta: 0:00:09  time: 0.0477  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:31 - mmengine - INFO - Epoch(test) [320/500]    eta: 0:00:09  time: 0.0515  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:31 - mmengine - INFO - Epoch(test) [325/500]    eta: 0:00:09  time: 0.0509  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:31 - mmengine - INFO - Epoch(test) [330/500]    eta: 0:00:08  time: 0.0473  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:31 - mmengine - INFO - Epoch(test) [335/500]    eta: 0:00:08  time: 0.0501  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:32 - mmengine - INFO - Epoch(test) [340/500]    eta: 0:00:08  time: 0.0489  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:32 - mmengine - INFO - Epoch(test) [345/500]    eta: 0:00:08  time: 0.0442  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:32 - mmengine - INFO - Epoch(test) [350/500]    eta: 0:00:07  time: 0.0442  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:32 - mmengine - INFO - Epoch(test) [355/500]    eta: 0:00:07  time: 0.0457  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:33 - mmengine - INFO - Epoch(test) [360/500]    eta: 0:00:07  time: 0.0491  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:33 - mmengine - INFO - Epoch(test) [365/500]    eta: 0:00:07  time: 0.0491  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:33 - mmengine - INFO - Epoch(test) [370/500]    eta: 0:00:06  time: 0.0500  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:33 - mmengine - INFO - Epoch(test) [375/500]    eta: 0:00:06  time: 0.0624  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:34 - mmengine - INFO - Epoch(test) [380/500]    eta: 0:00:06  time: 0.0599  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:34 - mmengine - INFO - Epoch(test) [385/500]    eta: 0:00:06  time: 0.0474  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:34 - mmengine - INFO - Epoch(test) [390/500]    eta: 0:00:05  time: 0.0536  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:34 - mmengine - INFO - Epoch(test) [395/500]    eta: 0:00:05  time: 0.0551  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:35 - mmengine - INFO - Epoch(test) [400/500]    eta: 0:00:05  time: 0.0478  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:35 - mmengine - INFO - Epoch(test) [405/500]    eta: 0:00:04  time: 0.0459  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:35 - mmengine - INFO - Epoch(test) [410/500]    eta: 0:00:04  time: 0.0448  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:35 - mmengine - INFO - Epoch(test) [415/500]    eta: 0:00:04  time: 0.0437  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:36 - mmengine - INFO - Epoch(test) [420/500]    eta: 0:00:04  time: 0.0462  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:36 - mmengine - INFO - Epoch(test) [425/500]    eta: 0:00:03  time: 0.0473  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:36 - mmengine - INFO - Epoch(test) [430/500]    eta: 0:00:03  time: 0.0456  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:36 - mmengine - INFO - Epoch(test) [435/500]    eta: 0:00:03  time: 0.0469  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:37 - mmengine - INFO - Epoch(test) [440/500]    eta: 0:00:03  time: 0.0506  data_time: 0.0016  memory: 864  
+2023/11/01 10:01:37 - mmengine - INFO - Epoch(test) [445/500]    eta: 0:00:02  time: 0.0510  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:37 - mmengine - INFO - Epoch(test) [450/500]    eta: 0:00:02  time: 0.0490  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:37 - mmengine - INFO - Epoch(test) [455/500]    eta: 0:00:02  time: 0.0478  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:38 - mmengine - INFO - Epoch(test) [460/500]    eta: 0:00:02  time: 0.0503  data_time: 0.0016  memory: 864  
+2023/11/01 10:01:38 - mmengine - INFO - Epoch(test) [465/500]    eta: 0:00:01  time: 0.0495  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:38 - mmengine - INFO - Epoch(test) [470/500]    eta: 0:00:01  time: 0.0436  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:38 - mmengine - INFO - Epoch(test) [475/500]    eta: 0:00:01  time: 0.0477  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:38 - mmengine - INFO - Epoch(test) [480/500]    eta: 0:00:01  time: 0.0486  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:39 - mmengine - INFO - Epoch(test) [485/500]    eta: 0:00:00  time: 0.0472  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:39 - mmengine - INFO - Epoch(test) [490/500]    eta: 0:00:00  time: 0.0529  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:39 - mmengine - INFO - Epoch(test) [495/500]    eta: 0:00:00  time: 0.0505  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:40 - mmengine - INFO - Epoch(test) [500/500]    eta: 0:00:00  time: 0.0508  data_time: 0.0015  memory: 864  
+2023/11/01 10:01:40 - mmengine - INFO - Evaluating hmean-iou...
+2023/11/01 10:01:40 - mmengine - INFO - prediction score threshold: 0.30, recall: 0.8772, precision: 0.7380, hmean: 0.8016
+
+2023/11/01 10:01:40 - mmengine - INFO - prediction score threshold: 0.40, recall: 0.8671, precision: 0.7910, hmean: 0.8273
+
+2023/11/01 10:01:40 - mmengine - INFO - prediction score threshold: 0.50, recall: 0.8546, precision: 0.8271, hmean: 0.8406
+
+2023/11/01 10:01:40 - mmengine - INFO - prediction score threshold: 0.60, recall: 0.8339, precision: 0.8690, hmean: 0.8511
+
+2023/11/01 10:01:40 - mmengine - INFO - prediction score threshold: 0.70, recall: 0.8089, precision: 0.8936, hmean: 0.8491
+
+2023/11/01 10:01:40 - mmengine - INFO - prediction score threshold: 0.80, recall: 0.7800, precision: 0.9257, hmean: 0.8466
+
+2023/11/01 10:01:40 - mmengine - INFO - prediction score threshold: 0.90, recall: 0.7150, precision: 0.9538, hmean: 0.8173
+
+2023/11/01 10:01:40 - mmengine - INFO - Epoch(test) [500/500]    icdar/precision: 0.8690  icdar/recall: 0.8339  icdar/hmean: 0.8511  data_time: 0.0023  time: 0.0516

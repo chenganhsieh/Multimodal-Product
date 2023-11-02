@@ -20,7 +20,7 @@ from num2words import num2words
 
 '''icdar(coco) style dataset'''
 @DATASETS.register_module()
-class OCRCLIPDataset(IcdarDataset):
+class OCRCLIPwget https://download.openmmlab.com/mmocr/data/icdar2015/mini_icdar2015.tar.gzDataset(IcdarDataset):
     CLASSES = ('text',)
     # PROMPT_CLASSES = ('a set of many arbitrary-shape text instances.',)
     # PROMPT_CLASSES = ('the set of many arbitrary-shape text instances.',)
