@@ -360,4 +360,4 @@ visualizer = dict(
     vis_backends=[
         dict(type='LocalVisBackend'),
     ])
-work_dir = './work_dirs/dbnet_resnet50_1200e_icdar2015'
+work_dir = './work_dirs/clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji'
