@@ -6,11 +6,9 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 from timm.models.layers import drop, drop_path, trunc_normal_
-# from mmseg.models.builder import BACKBONES
 from mmseg.models.backbones import ResNet
 from mmseg.models.backbones import VisionTransformer as MMVisionTransformer
-
-from mmocr.models.builder import BACKBONES
+from mmdet.registry import MODELS
 from mmocr.utils import get_root_logger
 from mmcv.utils import print_log
 
@@ -114,7 +112,7 @@ class AttentionPool2d(nn.Module):
         feature_map = x[:, :, 1:].reshape(B, -1, H, W)# NCHW
         return global_feat, feature_map
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class CLIPResNet(nn.Module):
     """
     A ResNet class that is similar to torchvision's but contains the following changes:
@@ -203,7 +201,7 @@ class CLIPResNet(nn.Module):
         return tuple(final_outs)
 
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class CLIPResNetWithAttention(nn.Module):
     """
     A ResNet class that is similar to torchvision's but contains the following changes:
@@ -306,7 +304,7 @@ class CLIPResNetWithAttention(nn.Module):
 
 
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class CLIPResNetWithGCAndStage(nn.Module):
     """
     A ResNet class that is similar to torchvision's but contains the following changes:
@@ -683,7 +681,7 @@ class TransformerDecoderLayer(nn.Module):
         return x
 
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class CLIPVisionTransformer(nn.Module):
     def __init__(self, input_resolution=224, patch_size=32, width=768, layers=12, heads=12, output_dim=512, drop_path_rate=0.0, out_indices=[3, 5, 7, 11], pretrained=None, get_embeddings=False, **kwargs):
         super().__init__()
@@ -816,7 +814,7 @@ class CLIPVisionTransformer(nn.Module):
 
         return tuple(features)
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class CLIPTextEncoder(nn.Module):
     def __init__(self, context_length=77,
                  vocab_size=49408,
@@ -886,7 +884,7 @@ class CLIPTextEncoder(nn.Module):
         return x
 
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class CLIPTextContextEncoder(nn.Module):
     def __init__(self, context_length=22,
                  vocab_size=49408,
@@ -1045,7 +1043,7 @@ class CLIPTextContextEncoder(nn.Module):
         return x
 
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class ContextDecoder(nn.Module):
     def __init__(self,
                  transformer_width=256,
@@ -1098,7 +1096,7 @@ class ContextDecoder(nn.Module):
         
         return self.out_proj(x)
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class PromptGenerator(nn.Module):
     def __init__(self,
                  visual_dim=1024,
@@ -1135,7 +1133,7 @@ class PromptGenerator(nn.Module):
 
 ########################################  Recognizer  ##################################################################
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class ResNetFeatureExtractor(nn.Module):
 
     def __init__(self, in_channel, out_channel=512):
@@ -1276,7 +1274,7 @@ class RecResNet(nn.Module):
         return x
 
 
-@BACKBONES.register_module()
+@MODELS.register_module()
 class MultiAspectGCAttention(nn.Module):
 
     def __init__(

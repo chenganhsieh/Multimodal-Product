@@ -7,14 +7,13 @@ from mmcv.runner import BaseModule, Sequential
 from mmcv.runner import force_fp32
 # from mmseg.ops import resize
 import numpy as np
-
-from mmocr.models.builder import HEADS
+from mmdet.registry import MODELS
 from mmocr.models import HeadMixin
 from mmocr.models.common.losses.dice_loss import DiceLoss
 from mmocr.utils import check_argument
 
 
-@HEADS.register_module()
+@MODELS.register_module()
 class DBFP16Head(HeadMixin, BaseModule):
     """The class for DBNet head. calculate bce loss using logits for fp16
 
@@ -155,7 +154,7 @@ class DBFP16Head(HeadMixin, BaseModule):
 
 
 
-@HEADS.register_module()
+@MODELS.register_module()
 class TextSegHead(HeadMixin, BaseModule):
     """The class for Seg head. calculate bce loss using logits for fp16
 
@@ -304,7 +303,7 @@ class TextSegHead(HeadMixin, BaseModule):
         return losses
 
 
-@HEADS.register_module()
+@MODELS.register_module()
 class IdentityHead(BaseModule):
     """The class for DBNet aux seg head.
 
@@ -454,7 +453,7 @@ class IdentityHead(BaseModule):
         # return self.sigmod(inputs)
 
 
-@HEADS.register_module()
+@MODELS.register_module()
 class FCEIdentityHead(IdentityHead):
     """The class for DBNet aux seg head.
 
@@ -508,7 +507,7 @@ class FCEIdentityHead(IdentityHead):
         return results
 
 
-@HEADS.register_module()
+@MODELS.register_module()
 class PANIdentityHead(IdentityHead):
     """The class for DBNet aux seg head.
 

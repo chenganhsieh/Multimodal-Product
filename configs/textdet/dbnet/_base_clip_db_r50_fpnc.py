@@ -1,30 +1,3 @@
-model = dict(
-    type='DBNet',
-    backbone=dict(
-        type='mmdet.ResNet',
-        depth=50,
-        num_stages=4,
-        out_indices=(0, 1, 2, 3),
-        frozen_stages=-1,
-        norm_cfg=dict(type='BN', requires_grad=True),
-        norm_eval=False,
-        style='pytorch',
-        dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False),
-        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50'),
-        stage_with_dcn=(False, True, True, True)),
-    neck=dict(
-        type='FPNC', in_channels=[256, 512, 1024, 2048], lateral_channels=256),
-    det_head=dict(
-        type='DBHead',
-        in_channels=256,
-        module_loss=dict(type='DBModuleLoss'),
-        postprocessor=dict(type='DBPostprocessor', text_repr_type='quad')),
-    data_preprocessor=dict(
-        type='TextDetDataPreprocessor',
-        mean=[123.675, 116.28, 103.53],
-        std=[58.395, 57.12, 57.375],
-        bgr_to_rgb=True,
-        pad_size_divisor=32))
 
 train_pipeline = [
     dict(type='LoadImageFromFile', color_type='color_ignore_orientation'),
@@ -64,3 +37,78 @@ test_pipeline = [
         type='PackTextDetInputs',
         meta_keys=('img_path', 'ori_shape', 'img_shape', 'scale_factor'))
 ]
+
+
+
+
+# model settings
+# prompt_class_names = ['a set of many arbitrary-shape text instances.']
+# prompt_class_names = ['the set of many arbitrary-shape text instances.']
+prompt_class_names = ['the pixels of many arbitrary-shape text instances.']
+
+model = dict(
+    type='CLIPProduct',
+    pretrained='/home/biometrics/reserve/Multimodal-Product/pretrained/RN50.pt',
+    context_length=14, # len of class name
+    class_names=prompt_class_names,
+    use_learnable_prompt=True,  # predefine text + learnable prompt
+    use_learnable_prompt_only=False, # only use learnable prompt
+    backbone=dict(
+        type='CLIPResNetWithAttention',
+        layers=[3, 4, 6, 3],
+        output_dim=1024,
+        input_resolution=640, # 512
+        style='pytorch'),
+    text_encoder=dict(
+        type='CLIPTextContextEncoder',
+        context_length=18, # len of clip text encoder input
+        embed_dim=1024,
+        transformer_width=512,
+        transformer_heads=8,
+        transformer_layers=12,
+        style='pytorch'),
+    prompt_generator=dict(
+        type='PromptGenerator',
+        visual_dim=1024,
+        token_embed_dim=512,
+        style='pytorch'
+    ),
+    context_decoder=dict(
+        type='ContextDecoder',
+        transformer_width=256,
+        transformer_heads=4,
+        transformer_layers=3,
+        visual_dim=1024,
+        dropout=0.1,
+        outdim=1024,
+        style='pytorch'),
+    visual_prompt_generator=dict(
+        type='ContextDecoder',
+        transformer_width=256,
+        transformer_heads=4,
+        transformer_layers=3,
+        visual_dim=1024,
+        dropout=0.1,
+        outdim=1024,
+        style='pytorch'),
+    neck=dict(
+        type='FPNC',
+        in_channels=[256, 512, 1024, 2048+1],
+        lateral_channels=256
+        ),
+    det_head=dict(
+        type='DBHead',
+        in_channels=256,
+        loss=dict(type='DBLoss', alpha=5.0, beta=10.0, bbce_loss=True),
+        postprocessor=dict(type='DBPostprocessor', text_repr_type='quad')),
+    identity_head=dict(
+        type='IdentityHead',
+        downsample_ratio=32.0,
+        loss_weight=1.0,
+        reduction='mean',
+        negative_ratio=3.0,
+        bbce_loss=True),
+    # model training and testing settings
+    train_cfg=None,
+    test_cfg=None
+)

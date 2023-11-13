@@ -8,20 +8,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from mmocr.registry import MODELS
-from .single_stage_text_detector import SingleStageTextDetector
+from mmocr.structures import TextDetDataSample
 
-from mmdet.models.detectors import \
-    SingleStageDetector as MMDET_SingleStageDetector
-from mmocr.models.builder import (DETECTORS, build_backbone, build_head,
-                                  build_neck)
+from mmdet.models.textdet.detectors import SingleStageTextDetector
 import mmcv
 from mmocr.core import imshow_pred_boundary, show_pred_gt
 from mmocr.core.visualize import tile_image
 from mmcv.utils import check_file_exist, is_str, mkdir_or_exist
 
-from .single_stage_text_detector import SingleStageTextDetector
-
-from mmocr.models import SingleStageTextDetector, TextDetectorMixin
 from mmseg.core import add_prefix
 from mmseg.ops import resize
 import matplotlib.pyplot as plt
@@ -31,23 +25,31 @@ from .feature_visualization import draw_feature_map
 
 @MODELS.register_module()
 class CLIPProduct(SingleStageTextDetector):
-    """The class for implementing DBNet text detector: Real-time Scene Text
-    Detection with Differentiable Binarization.
+    """The class for implementing single stage text detector.
 
-    Base class for single-stage detectors.
+    Single-stage text detectors directly and densely predict bounding boxes or
+    polygons on the output features of the backbone + neck (optional).
 
-    Single-stage detectors directly and densely predict bounding boxes on the
-    output features of the backbone+neck.
-
-    DBCLIP
-    [https://arxiv.org/abs/1911.08947].
+    Args:
+        backbone (dict): Backbone config.
+        neck (dict, optional): Neck config. If None, the output from backbone
+            will be directly fed into ``det_head``.
+        det_head (dict): Head config.
+        data_preprocessor (dict, optional): Model preprocessing config
+            for processing the input image data. Keys allowed are
+            ``to_rgb``(bool), ``pad_size_divisor``(int), ``pad_value``(int or
+            float), ``mean``(int or float) and ``std``(int or float).
+            Preprcessing order: 1. to rgb; 2. normalization 3. pad.
+            Defaults to None.
+        init_cfg (dict or list[dict], optional): Initialization configs.
+            Defaults to None.
     """
 
     def __init__(self,
                  backbone,
                  text_encoder,
                  context_decoder, # for text embedding query updated by CA(text, visual)
-                 bbox_head,
+                 det_head,
                  class_names,
                  context_length, # len of predefine text
                  seq_context_length=5,
@@ -70,9 +72,11 @@ class CLIPProduct(SingleStageTextDetector):
                  show_score=False,
                  init_cfg=None,
                  token_embed_dim=512, text_dim=1024,
+                 data_preprocessor = None
                  **args):
-        super(MMDET_SingleStageDetector, self).__init__(init_cfg=init_cfg)
-        TextDetectorMixin.__init__(self, show_score)
+        super().__init__(
+            data_preprocessor=data_preprocessor, init_cfg=init_cfg)
+        assert det_head is not None, 'det_head cannot be None!'
 
         if pretrained:
             warnings.warn('DeprecationWarning: pretrained is deprecated, '
@@ -91,16 +95,16 @@ class CLIPProduct(SingleStageTextDetector):
             else:
                 text_encoder.pretrained = pretrained
 
-        self.backbone = build_backbone(backbone)
+        self.backbone = MODELS.build(backbone)
 
-        self.text_encoder = build_backbone(text_encoder)
-        self.context_decoder = build_backbone(context_decoder)
+        self.text_encoder = MODELS.build(text_encoder)
+        self.context_decoder = MODELS.build(context_decoder)
         if prompt_generator is not None:
-            self.prompt_generator = build_backbone(prompt_generator)
+            self.prompt_generator = MODELS.build(prompt_generator)
         else:
             self.prompt_generator = None
         if visual_prompt_generator is not None:
-            self.visual_prompt_generator = build_backbone(visual_prompt_generator)
+            self.visual_prompt_generator = MODELS.build(visual_prompt_generator)
         else:
             self.visual_prompt_generator = None
 
@@ -123,11 +127,11 @@ class CLIPProduct(SingleStageTextDetector):
             self.context_length = self.text_encoder.context_length
 
         if neck is not None:
-            self.neck = build_neck(neck)
+            self.neck = MODELS.build(neck)
 
-        bbox_head.update(train_cfg=train_cfg)
-        bbox_head.update(test_cfg=test_cfg)
-        self.bbox_head = build_head(bbox_head)
+        det_head.update(train_cfg=train_cfg)
+        det_head.update(test_cfg=test_cfg)
+        self.det_head = MODELS.build(det_head)
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
 
@@ -172,32 +176,32 @@ class CLIPProduct(SingleStageTextDetector):
             if isinstance(auxiliary_head, list):
                 self.auxiliary_head = nn.ModuleList()
                 for head_cfg in auxiliary_head:
-                    self.auxiliary_head.append(build_head(head_cfg))
+                    self.auxiliary_head.append(MODELS.build(head_cfg))
             else:
-                self.auxiliary_head = build_head(auxiliary_head)
+                self.auxiliary_head = MODELS.build(auxiliary_head)
 
     def _init_identity_head(self, identity_head):
         """Initialize ``auxiliary pixel-text matching head``"""
         if identity_head is not None:
             self.with_identity_head = True
-            self.identity_head = build_head(identity_head)
+            self.identity_head = MODELS.build(identity_head)
 
     def extract_feat(self, img):
         """Extract features from images."""
         x = self.backbone(img)
         return x
 
-    def _bbox_head_forward_train(self, x, text_embeddings, **kwargs):
+    def _det_head_forward_train(self, x, text_embeddings, **kwargs):
         '''
         kwargs ： db gt_shrink, gt_shrink_mask, gt_thr, gt_thr_mask
         '''
         losses = dict()
-        if self.bbox_head.__class__.__name__ == 'TextSegHead':
-            preds = self.bbox_head(x, text_embeddings) # (B, 1, H, W)
+        if self.det_head.__class__.__name__ == 'TextSegHead':
+            preds = self.det_head(x, text_embeddings) # (B, 1, H, W)
         else:
-            preds = self.bbox_head(x) # (B, 3, H, W)
+            preds = self.det_head(x) # (B, 3, H, W)
         # gt_shrink, gt_shrink_mask, gt_thr, gt_thr_mask
-        loss_bbox = self.bbox_head.loss(preds, **kwargs)
+        loss_bbox = self.det_head.loss(preds, **kwargs)
         losses.update(add_prefix(loss_bbox, 'bbox'))
         return losses
 
@@ -286,11 +290,7 @@ class CLIPProduct(SingleStageTextDetector):
 
             visual_embeddings = visual_embeddings + self.vis_gamma * vis_prompt_diff
 
-            # if self.visualization_feat:
-            #     draw_feature_map(visual_embeddings, title='added_vis_pro_img_embed', img_name=img_name)
 
-            # if self.visualization_feat:
-            #     draw_feature_map(visual_embeddings, title='vis_prompt', img_name=img_name)
 
         if self.use_context_decoder:
             # update text_embeddings by visual_context, post-model prompting refines the text_embeddings
@@ -332,23 +332,20 @@ class CLIPProduct(SingleStageTextDetector):
         # shape = [global_batch_size, global_batch_size]
         return logits_per_image, logits_per_text
 
-    def forward_train(self, img, img_metas, **kwargs):
-        """
-        Args:
-            img (Tensor): Input images of shape (N, C, H, W).
-                Typically these should be mean centered and std scaled.
-            img_metas (list[dict]): A list of image info dict where each dict
-                has: 'img_shape', 'scale_factor', 'flip', and may also contain
-                'filename', 'ori_shape', 'pad_shape', and 'img_norm_cfg'.
-                For details on the values of these keys, see
-                :class:`mmdet.datasets.pipelines.Collect`.
+    def loss(self, img, data_samples):
+        """Calculate losses from a batch of inputs and data samples.
 
-                kwargs: gt_shrink, gt_shrink_mask, gt_thr, gt_thr_mask
+        Args:
+            img (torch.Tensor): Input images of shape (N, C, H, W).
+                Typically these should be mean centered and std scaled.
+            data_samples (list[TextDetDataSample]): A list of N
+                datasamples, containing meta information and gold annotations
+                for each of the images.
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
 
-        # 4 stage output + (global feat, self-attention based feat)
+        # 4 layer output + (global feat, self-attention based feat)
         x = self.extract_feat(img)
         _x_orig = [x[i] for i in range(len(x)-1)]
 
@@ -360,7 +357,7 @@ class CLIPProduct(SingleStageTextDetector):
 
         if self.with_neck:
             x_fusion = self.neck(x_orig)  # (N, C, H/4, W/4)
-            # _x_orig = x_fusion  # 此次是否需要放if判断外面
+            # _x_orig = x_fusion
         else:
             x_fusion = x_orig[0]
             # score_map_up = resize(
@@ -376,7 +373,7 @@ class CLIPProduct(SingleStageTextDetector):
         # else:
         x = x_fusion
 
-        loss_bbox = self._bbox_head_forward_train(x, text_embeddings, **kwargs)
+        loss_bbox = self._det_head_forward_train(x, text_embeddings, **kwargs)
         losses.update(loss_bbox)
 
         if self.with_identity_head:
@@ -417,10 +414,10 @@ class CLIPProduct(SingleStageTextDetector):
         #     x = [text_embeddings, ] + x_fusion
         # else:
         x = x_fusion
-        if self.bbox_head.__class__.__name__ == 'TextSegHead':
-            outs = self.bbox_head(x, text_embeddings)
+        if self.det_head.__class__.__name__ == 'TextSegHead':
+            outs = self.det_head(x, text_embeddings)
         else:
-            outs = self.bbox_head(x)
+            outs = self.det_head(x)
         # logits
         return outs
 
@@ -466,10 +463,10 @@ class CLIPProduct(SingleStageTextDetector):
         #     x = [text_embeddings, ] + x_fusion
         # else:
         x = x_fusion
-        if self.bbox_head.__class__.__name__ == 'TextSegHead':
-            outs = self.bbox_head(x, text_embeddings)
+        if self.det_head.__class__.__name__ == 'TextSegHead':
+            outs = self.det_head(x, text_embeddings)
         else:
-            outs = self.bbox_head(x)
+            outs = self.det_head(x)
 
         # early return to avoid post processing
         if torch.onnx.is_in_onnx_export():
@@ -477,14 +474,14 @@ class CLIPProduct(SingleStageTextDetector):
 
         if len(img_metas) > 1:
             boundaries = [
-                self.bbox_head.get_boundary(*(outs[i].unsqueeze(0)),
+                self.det_head.get_boundary(*(outs[i].unsqueeze(0)),
                                             [img_metas[i]], rescale)
                 for i in range(len(img_metas))
             ]
 
         else:
             boundaries = [
-                self.bbox_head.get_boundary(*outs, img_metas, rescale)
+                self.det_head.get_boundary(*outs, img_metas, rescale)
             ]
 
         return boundaries
