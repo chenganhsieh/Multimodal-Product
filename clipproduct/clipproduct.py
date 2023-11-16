@@ -10,21 +10,23 @@ import torch.nn.functional as F
 from mmocr.registry import MODELS
 from mmocr.structures import TextDetDataSample
 
-from mmdet.models.textdet.detectors import SingleStageTextDetector
+from mmocr.models.textdet.detectors.base import BaseTextDetector
 import mmcv
-from mmocr.core import imshow_pred_boundary, show_pred_gt
-from mmocr.core.visualize import tile_image
-from mmcv.utils import check_file_exist, is_str, mkdir_or_exist
-
-from mmseg.core import add_prefix
-from mmseg.ops import resize
+from mmseg.utils import add_prefix
 import matplotlib.pyplot as plt
 
 from .untils import tokenize
 from .feature_visualization import draw_feature_map
 
+def mkdir_or_exist(dir_name, mode=0o777):
+    if dir_name == '':
+        return
+    dir_name = osp.expanduser(dir_name)
+    os.makedirs(dir_name, mode=mode, exist_ok=True)
+
+
 @MODELS.register_module()
-class CLIPProduct(SingleStageTextDetector):
+class CLIPProduct(BaseTextDetector):
     """The class for implementing single stage text detector.
 
     Single-stage text detectors directly and densely predict bounding boxes or
@@ -66,13 +68,11 @@ class CLIPProduct(SingleStageTextDetector):
                  scale_matching_score_map=False,
                  auxiliary_head=None,
                  identity_head=None,
-                 train_cfg=None,
-                 test_cfg=None,
                  pretrained=None,
                  show_score=False,
                  init_cfg=None,
                  token_embed_dim=512, text_dim=1024,
-                 data_preprocessor = None
+                 data_preprocessor = None,
                  **args):
         super().__init__(
             data_preprocessor=data_preprocessor, init_cfg=init_cfg)
@@ -129,11 +129,11 @@ class CLIPProduct(SingleStageTextDetector):
         if neck is not None:
             self.neck = MODELS.build(neck)
 
-        det_head.update(train_cfg=train_cfg)
-        det_head.update(test_cfg=test_cfg)
+        # det_head.update(train_cfg=train_cfg)
+        # det_head.update(test_cfg=test_cfg)
         self.det_head = MODELS.build(det_head)
-        self.train_cfg = train_cfg
-        self.test_cfg = test_cfg
+        # self.train_cfg = train_cfg
+        # self.test_cfg = test_cfg
 
         self.with_auxiliary_head = False
         self.auxiliary_head = None
@@ -167,7 +167,7 @@ class CLIPProduct(SingleStageTextDetector):
 
         self.visualization_feat = False # for visualization only
 
-        assert self.with_bbox
+        # assert self.with_bbox
 
     def _init_auxiliary_head(self, auxiliary_head):
         """Initialize ``auxiliary image-sequence matching head``"""
@@ -219,7 +219,7 @@ class CLIPProduct(SingleStageTextDetector):
         training."""
         losses = dict()
         preds = self.identity_head(x)
-        loss_bbox = self.identity_head.loss(preds, **kwargs)
+        loss_bbox = self.identity_head.loss(preds, img_metas)
         losses.update(add_prefix(loss_bbox, 'aux'))
         return losses
 
@@ -344,7 +344,8 @@ class CLIPProduct(SingleStageTextDetector):
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
-
+        # import pdb
+        # pdb.set_trace()
         # 4 layer output + (global feat, self-attention based feat)
         x = self.extract_feat(img)
         _x_orig = [x[i] for i in range(len(x)-1)]
@@ -373,22 +374,23 @@ class CLIPProduct(SingleStageTextDetector):
         # else:
         x = x_fusion
 
-        loss_bbox = self._det_head_forward_train(x, text_embeddings, **kwargs)
+        # loss_bbox = self._det_head_forward_train(x, text_embeddings, data_samples)
+        loss_bbox = self.det_head.loss(x, data_samples)
         losses.update(loss_bbox)
 
-        if self.with_identity_head:
-            loss_identity = self._identity_head_forward_train(
-                score_map if self.scale_matching_score_map else score_map / self.tau,
-                img_metas, **kwargs)
-            losses.update(loss_identity)
+        # if self.with_identity_head:
+        #     loss_identity = self._identity_head_forward_train(
+        #         score_map if self.scale_matching_score_map else score_map / self.tau,
+        #         img_metas)
+        #     losses.update(loss_identity)
 
-        if self.with_auxiliary_head:
-            loss_aux = self._auxiliary_head_forward_train(
-                x, img_metas)
-            losses.update(loss_aux)
+        # if self.with_auxiliary_head:
+        #     loss_aux = self._auxiliary_head_forward_train(
+        #         x, img_metas)
+        #     losses.update(loss_aux)
 
         return losses
-    def forward_dummy(self, img):
+    def _forward(self, img):
         # used for getting flops
         x = self.extract_feat(img)
         _x_orig = [x[i] for i in range(len(x)-1)]
@@ -421,7 +423,7 @@ class CLIPProduct(SingleStageTextDetector):
         # logits
         return outs
 
-    def simple_test(self, img, img_metas, rescale=False):
+    def predict(self, img, img_metas, rescale=False):
 
         x = self.extract_feat(img)
         _x_orig = [x[i] for i in range(len(x)-1)]
@@ -464,27 +466,27 @@ class CLIPProduct(SingleStageTextDetector):
         # else:
         x = x_fusion
         if self.det_head.__class__.__name__ == 'TextSegHead':
-            outs = self.det_head(x, text_embeddings)
+            outs = self.det_head.predict(x, text_embeddings)
         else:
-            outs = self.det_head(x)
+            outs = self.det_head.predict(x,img_metas)
 
         # early return to avoid post processing
-        if torch.onnx.is_in_onnx_export():
-            return outs
+        # if torch.onnx.is_in_onnx_export():
+        #     return outs
 
-        if len(img_metas) > 1:
-            boundaries = [
-                self.det_head.get_boundary(*(outs[i].unsqueeze(0)),
-                                            [img_metas[i]], rescale)
-                for i in range(len(img_metas))
-            ]
+        # if len(img_metas) > 1:
+        #     boundaries = [
+        #         self.det_head.get_boundary(*(outs[i].unsqueeze(0)),
+        #                                     [img_metas[i]], rescale)
+        #         for i in range(len(img_metas))
+        #     ]
 
-        else:
-            boundaries = [
-                self.det_head.get_boundary(*outs, img_metas, rescale)
-            ]
+        # else:
+        #     boundaries = [
+        #         self.det_head.get_boundary(*outs, img_metas, rescale)
+        #     ]
 
-        return boundaries
+        return outs
 
 
     def show_result_with_score_map(self,
@@ -546,23 +548,23 @@ class CLIPProduct(SingleStageTextDetector):
         if out_file is not None:
             show = False
         # draw bounding boxes
-        if boundaries is not None and len(boundaries) != 0:
-            img_with_pred = imshow_pred_boundary(
-                img,
-                boundaries,
-                labels,
-                score_thr=score_thr,
-                boundary_color=bbox_color,
-                text_color=text_color,
-                thickness=thickness,
-                font_scale=font_scale,
-                win_name=win_name,
-                show=False,
-                wait_time=wait_time,
-                out_file=None, #out_file,
-                show_score=True)
-        else:
-            img_with_pred = img
+        # if boundaries is not None and len(boundaries) != 0:
+        #     img_with_pred = imshow_pred_boundary(
+        #         img,
+        #         boundaries,
+        #         labels,
+        #         score_thr=score_thr,
+        #         boundary_color=bbox_color,
+        #         text_color=text_color,
+        #         thickness=thickness,
+        #         font_scale=font_scale,
+        #         win_name=win_name,
+        #         show=False,
+        #         wait_time=wait_time,
+        #         out_file=None, #out_file,
+        #         show_score=True)
+        # else:
+        img_with_pred = img
 
         tile_img_name = out_file.split('.')[0] + '_tile.' + out_file.split('.')[-1]
         dir_name = osp.abspath(osp.dirname(tile_img_name))

@@ -1,0 +1,2140 @@
+2023/11/14 18:13:17 - mmengine - INFO - 
+------------------------------------------------------------
+System environment:
+    sys.platform: linux
+    Python: 3.8.18 (default, Sep 11 2023, 13:40:15) [GCC 11.2.0]
+    CUDA available: True
+    numpy_random_seed: 905454230
+    GPU 0,1: NVIDIA GeForce RTX 4090
+    CUDA_HOME: /usr/local/cuda-11.3
+    NVCC: Cuda compilation tools, release 11.3, V11.3.58
+    GCC: gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+    PyTorch: 1.10.2
+    PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2023.1-Product Build 20230303 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.2.3 (Git Hash 7336ca9f055cf1bfa13efb658fe15dc9b41f0740)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.3
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 8.2
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.3, CUDNN_VERSION=8.2.0, CXX_COMPILER=/opt/rh/devtoolset-7/root/usr/bin/c++, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DEDGE_PROFILER_USE_KINETO -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.10.2, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+    TorchVision: 0.11.3
+    OpenCV: 4.8.1
+    MMEngine: 0.9.1
+
+Runtime environment:
+    cudnn_benchmark: False
+    mp_cfg: {'mp_start_method': 'fork', 'opencv_num_threads': 0}
+    dist_cfg: {'backend': 'nccl'}
+    seed: 905454230
+    Distributed launcher: pytorch
+    Distributed training: True
+    GPU number: 2
+------------------------------------------------------------
+
+2023/11/14 18:13:18 - mmengine - INFO - Config:
+auto_scale_lr = dict(base_batch_size=16)
+default_hooks = dict(
+    checkpoint=dict(interval=5, max_keep_ckpts=1, type='CheckpointHook'),
+    logger=dict(interval=5, type='LoggerHook'),
+    param_scheduler=dict(type='ParamSchedulerHook'),
+    sampler_seed=dict(type='DistSamplerSeedHook'),
+    sync_buffer=dict(type='SyncBuffersHook'),
+    timer=dict(type='IterTimerHook'),
+    visualization=dict(
+        draw_gt=False,
+        draw_pred=False,
+        enable=False,
+        interval=1,
+        show=False,
+        type='VisualizationHook'))
+default_scope = 'mmocr'
+env_cfg = dict(
+    cudnn_benchmark=False,
+    dist_cfg=dict(backend='nccl'),
+    mp_cfg=dict(mp_start_method='fork', opencv_num_threads=0))
+icdar2015_textdet_data_root = 'data/icdar2015'
+icdar2015_textdet_test = dict(
+    ann_file='textdet_test.json',
+    data_root='data/icdar2015',
+    pipeline=[
+        dict(color_type='color_ignore_orientation', type='LoadImageFromFile'),
+        dict(keep_ratio=True, scale=(
+            4068,
+            1024,
+        ), type='Resize'),
+        dict(
+            type='LoadOCRAnnotations',
+            with_bbox=True,
+            with_label=True,
+            with_polygon=True),
+        dict(
+            meta_keys=(
+                'img_path',
+                'ori_shape',
+                'img_shape',
+                'scale_factor',
+            ),
+            type='PackTextDetInputs'),
+    ],
+    test_mode=True,
+    type='OCRDataset')
+icdar2015_textdet_train = dict(
+    ann_file='textdet_train.json',
+    data_root='data/icdar2015',
+    filter_cfg=dict(filter_empty_gt=True, min_size=32),
+    pipeline=[
+        dict(color_type='color_ignore_orientation', type='LoadImageFromFile'),
+        dict(
+            type='LoadOCRAnnotations',
+            with_bbox=True,
+            with_label=True,
+            with_polygon=True),
+        dict(
+            brightness=0.12549019607843137,
+            op='ColorJitter',
+            saturation=0.5,
+            type='TorchVisionWrapper'),
+        dict(
+            args=[
+                [
+                    'Fliplr',
+                    0.5,
+                ],
+                dict(cls='Affine', rotate=[
+                    -10,
+                    10,
+                ]),
+                [
+                    'Resize',
+                    [
+                        0.5,
+                        3.0,
+                    ],
+                ],
+            ],
+            type='ImgAugWrapper'),
+        dict(min_side_ratio=0.1, type='RandomCrop'),
+        dict(keep_ratio=True, scale=(
+            640,
+            640,
+        ), type='Resize'),
+        dict(size=(
+            640,
+            640,
+        ), type='Pad'),
+        dict(
+            meta_keys=(
+                'img_path',
+                'ori_shape',
+                'img_shape',
+            ),
+            type='PackTextDetInputs'),
+    ],
+    type='OCRDataset')
+launcher = 'pytorch'
+load_from = None
+log_level = 'INFO'
+log_processor = dict(by_epoch=True, type='LogProcessor', window_size=10)
+model = dict(
+    backbone=dict(
+        input_resolution=640,
+        layers=[
+            3,
+            4,
+            6,
+            3,
+        ],
+        output_dim=1024,
+        style='pytorch',
+        type='CLIPResNetWithAttention'),
+    class_names=[
+        'the pixels of many arbitrary-shape text instances.',
+    ],
+    context_decoder=dict(
+        dropout=0.1,
+        outdim=1024,
+        style='pytorch',
+        transformer_heads=4,
+        transformer_layers=3,
+        transformer_width=256,
+        type='ContextDecoder',
+        visual_dim=1024),
+    context_length=14,
+    data_preprocessor=dict(
+        bgr_to_rgb=True,
+        mean=[
+            123.675,
+            116.28,
+            103.53,
+        ],
+        pad_size_divisor=32,
+        std=[
+            58.395,
+            57.12,
+            57.375,
+        ],
+        type='TextDetDataPreprocessor'),
+    det_head=dict(
+        in_channels=256,
+        module_loss=dict(type='DBModuleLoss'),
+        postprocessor=dict(text_repr_type='quad', type='DBPostprocessor'),
+        type='DBHead'),
+    identity_head=dict(
+        bbce_loss=True,
+        downsample_ratio=32.0,
+        loss_weight=1.0,
+        negative_ratio=3.0,
+        reduction='mean',
+        type='IdentityHead'),
+    neck=dict(
+        in_channels=[
+            256,
+            512,
+            1024,
+            2049,
+        ],
+        lateral_channels=256,
+        type='FPNC'),
+    pretrained='pretrained/RN50.pt',
+    prompt_generator=dict(
+        style='pytorch',
+        token_embed_dim=512,
+        type='PromptGenerator',
+        visual_dim=1024),
+    text_encoder=dict(
+        context_length=18,
+        embed_dim=1024,
+        style='pytorch',
+        transformer_heads=8,
+        transformer_layers=12,
+        transformer_width=512,
+        type='CLIPTextContextEncoder'),
+    type='CLIPProduct',
+    use_learnable_prompt=True,
+    use_learnable_prompt_only=False,
+    visual_prompt_generator=dict(
+        dropout=0.1,
+        outdim=1024,
+        style='pytorch',
+        transformer_heads=4,
+        transformer_layers=3,
+        transformer_width=256,
+        type='ContextDecoder',
+        visual_dim=1024))
+optim_wrapper = dict(
+    optimizer=dict(lr=0.007, momentum=0.9, type='SGD', weight_decay=0.0001),
+    type='OptimWrapper')
+param_scheduler = [
+    dict(begin=100, end=1200, eta_min=1e-07, power=0.9, type='PolyLR'),
+]
+prompt_class_names = [
+    'the pixels of many arbitrary-shape text instances.',
+]
+randomness = dict(seed=None)
+resume = False
+test_cfg = dict(type='TestLoop')
+test_dataloader = dict(
+    batch_size=1,
+    dataset=dict(
+        ann_file='textdet_test.json',
+        data_root='data/icdar2015',
+        pipeline=[
+            dict(
+                color_type='color_ignore_orientation',
+                type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                4068,
+                1024,
+            ), type='Resize'),
+            dict(
+                type='LoadOCRAnnotations',
+                with_bbox=True,
+                with_label=True,
+                with_polygon=True),
+            dict(
+                meta_keys=(
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackTextDetInputs'),
+        ],
+        test_mode=True,
+        type='OCRDataset'),
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+test_evaluator = dict(type='HmeanIOUMetric')
+test_pipeline = [
+    dict(color_type='color_ignore_orientation', type='LoadImageFromFile'),
+    dict(keep_ratio=True, scale=(
+        4068,
+        1024,
+    ), type='Resize'),
+    dict(
+        type='LoadOCRAnnotations',
+        with_bbox=True,
+        with_label=True,
+        with_polygon=True),
+    dict(
+        meta_keys=(
+            'img_path',
+            'ori_shape',
+            'img_shape',
+            'scale_factor',
+        ),
+        type='PackTextDetInputs'),
+]
+train_cfg = dict(max_epochs=1200, type='EpochBasedTrainLoop', val_interval=10)
+train_dataloader = dict(
+    batch_size=16,
+    dataset=dict(
+        ann_file='textdet_train.json',
+        data_root='data/icdar2015',
+        filter_cfg=dict(filter_empty_gt=True, min_size=32),
+        pipeline=[
+            dict(
+                color_type='color_ignore_orientation',
+                type='LoadImageFromFile'),
+            dict(
+                type='LoadOCRAnnotations',
+                with_bbox=True,
+                with_label=True,
+                with_polygon=True),
+            dict(
+                brightness=0.12549019607843137,
+                op='ColorJitter',
+                saturation=0.5,
+                type='TorchVisionWrapper'),
+            dict(
+                args=[
+                    [
+                        'Fliplr',
+                        0.5,
+                    ],
+                    dict(cls='Affine', rotate=[
+                        -10,
+                        10,
+                    ]),
+                    [
+                        'Resize',
+                        [
+                            0.5,
+                            3.0,
+                        ],
+                    ],
+                ],
+                type='ImgAugWrapper'),
+            dict(min_side_ratio=0.1, type='RandomCrop'),
+            dict(keep_ratio=True, scale=(
+                640,
+                640,
+            ), type='Resize'),
+            dict(size=(
+                640,
+                640,
+            ), type='Pad'),
+            dict(
+                meta_keys=(
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                ),
+                type='PackTextDetInputs'),
+        ],
+        type='OCRDataset'),
+    num_workers=24,
+    persistent_workers=True,
+    sampler=dict(shuffle=True, type='DefaultSampler'))
+train_pipeline = [
+    dict(color_type='color_ignore_orientation', type='LoadImageFromFile'),
+    dict(
+        type='LoadOCRAnnotations',
+        with_bbox=True,
+        with_label=True,
+        with_polygon=True),
+    dict(
+        brightness=0.12549019607843137,
+        op='ColorJitter',
+        saturation=0.5,
+        type='TorchVisionWrapper'),
+    dict(
+        args=[
+            [
+                'Fliplr',
+                0.5,
+            ],
+            dict(cls='Affine', rotate=[
+                -10,
+                10,
+            ]),
+            [
+                'Resize',
+                [
+                    0.5,
+                    3.0,
+                ],
+            ],
+        ],
+        type='ImgAugWrapper'),
+    dict(min_side_ratio=0.1, type='RandomCrop'),
+    dict(keep_ratio=True, scale=(
+        640,
+        640,
+    ), type='Resize'),
+    dict(size=(
+        640,
+        640,
+    ), type='Pad'),
+    dict(
+        meta_keys=(
+            'img_path',
+            'ori_shape',
+            'img_shape',
+        ),
+        type='PackTextDetInputs'),
+]
+val_cfg = dict(type='ValLoop')
+val_dataloader = dict(
+    batch_size=1,
+    dataset=dict(
+        ann_file='textdet_test.json',
+        data_root='data/icdar2015',
+        pipeline=[
+            dict(
+                color_type='color_ignore_orientation',
+                type='LoadImageFromFile'),
+            dict(keep_ratio=True, scale=(
+                4068,
+                1024,
+            ), type='Resize'),
+            dict(
+                type='LoadOCRAnnotations',
+                with_bbox=True,
+                with_label=True,
+                with_polygon=True),
+            dict(
+                meta_keys=(
+                    'img_path',
+                    'ori_shape',
+                    'img_shape',
+                    'scale_factor',
+                ),
+                type='PackTextDetInputs'),
+        ],
+        test_mode=True,
+        type='OCRDataset'),
+    num_workers=4,
+    persistent_workers=True,
+    sampler=dict(shuffle=False, type='DefaultSampler'))
+val_evaluator = dict(type='HmeanIOUMetric')
+vis_backends = [
+    dict(type='LocalVisBackend'),
+]
+visualizer = dict(
+    name='visualizer',
+    type='TextDetLocalVisualizer',
+    vis_backends=[
+        dict(type='LocalVisBackend'),
+    ])
+work_dir = './work_dirs/clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji'
+
+2023/11/14 18:13:18 - mmengine - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+before_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) DistSamplerSeedHook                
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_train_iter:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) SyncBuffersHook                    
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) SyncBuffersHook                    
+ -------------------- 
+before_val_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) VisualizationHook                  
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_val_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+(LOW         ) ParamSchedulerHook                 
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+after_val:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_train:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(VERY_LOW    ) CheckpointHook                     
+ -------------------- 
+before_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+before_test_epoch:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+before_test_iter:
+(NORMAL      ) IterTimerHook                      
+ -------------------- 
+after_test_iter:
+(NORMAL      ) IterTimerHook                      
+(NORMAL      ) VisualizationHook                  
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test_epoch:
+(VERY_HIGH   ) RuntimeInfoHook                    
+(NORMAL      ) IterTimerHook                      
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+after_test:
+(VERY_HIGH   ) RuntimeInfoHook                    
+ -------------------- 
+after_run:
+(BELOW_NORMAL) LoggerHook                         
+ -------------------- 
+2023/11/14 18:13:19 - mmengine - INFO - Resize the pos_embed shape from torch.Size([50, 2048]) to torch.Size([401, 2048])
+2023/11/14 18:13:19 - mmengine - INFO - [] [] are misaligned params in CLIPResNetWithAttention
+2023/11/14 18:13:19 - mmengine - INFO - positional_embedding is tuncated from 77 to 18
+2023/11/14 18:13:19 - mmengine - INFO - [] [] are misaligned params in text encoder
+Name of parameter - Initialization information
+
+contexts - torch.Size([1, 4, 512]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+gamma - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+vis_gamma - torch.Size([]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+backbone.conv1.weight - torch.Size([32, 3, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.bn1.weight - torch.Size([32]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.bn1.bias - torch.Size([32]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.conv2.weight - torch.Size([32, 32, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.bn2.weight - torch.Size([32]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.bn2.bias - torch.Size([32]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.conv3.weight - torch.Size([64, 32, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.bn3.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.bn3.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.conv1.weight - torch.Size([64, 64, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.bn1.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.bn1.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.conv2.weight - torch.Size([64, 64, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.bn2.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.bn2.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.conv3.weight - torch.Size([256, 64, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.bn3.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.bn3.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.downsample.0.weight - torch.Size([256, 64, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.downsample.1.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.0.downsample.1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.1.conv1.weight - torch.Size([64, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.1.bn1.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.1.bn1.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.1.conv2.weight - torch.Size([64, 64, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.1.bn2.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.1.bn2.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.1.conv3.weight - torch.Size([256, 64, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.1.bn3.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.1.bn3.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.2.conv1.weight - torch.Size([64, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.2.bn1.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.2.bn1.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.2.conv2.weight - torch.Size([64, 64, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.2.bn2.weight - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.2.bn2.bias - torch.Size([64]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.2.conv3.weight - torch.Size([256, 64, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.2.bn3.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer1.2.bn3.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.conv1.weight - torch.Size([128, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.bn1.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.bn1.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.conv2.weight - torch.Size([128, 128, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.bn2.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.bn2.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.conv3.weight - torch.Size([512, 128, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.bn3.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.bn3.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.downsample.0.weight - torch.Size([512, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.downsample.1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.0.downsample.1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.1.conv1.weight - torch.Size([128, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.1.bn1.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.1.bn1.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.1.conv2.weight - torch.Size([128, 128, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.1.bn2.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.1.bn2.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.1.conv3.weight - torch.Size([512, 128, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.1.bn3.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.1.bn3.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.2.conv1.weight - torch.Size([128, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.2.bn1.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.2.bn1.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.2.conv2.weight - torch.Size([128, 128, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.2.bn2.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.2.bn2.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.2.conv3.weight - torch.Size([512, 128, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.2.bn3.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.2.bn3.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.3.conv1.weight - torch.Size([128, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.3.bn1.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.3.bn1.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.3.conv2.weight - torch.Size([128, 128, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.3.bn2.weight - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.3.bn2.bias - torch.Size([128]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.3.conv3.weight - torch.Size([512, 128, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.3.bn3.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer2.3.bn3.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.conv1.weight - torch.Size([256, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.bn1.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.bn1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.conv2.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.bn2.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.bn3.weight - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.bn3.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.downsample.0.weight - torch.Size([1024, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.downsample.1.weight - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.0.downsample.1.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.1.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.1.bn1.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.1.bn1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.1.conv2.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.1.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.1.bn2.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.1.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.1.bn3.weight - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.1.bn3.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.2.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.2.bn1.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.2.bn1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.2.conv2.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.2.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.2.bn2.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.2.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.2.bn3.weight - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.2.bn3.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.3.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.3.bn1.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.3.bn1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.3.conv2.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.3.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.3.bn2.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.3.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.3.bn3.weight - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.3.bn3.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.4.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.4.bn1.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.4.bn1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.4.conv2.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.4.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.4.bn2.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.4.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.4.bn3.weight - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.4.bn3.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.5.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.5.bn1.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.5.bn1.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.5.conv2.weight - torch.Size([256, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.5.bn2.weight - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.5.bn2.bias - torch.Size([256]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.5.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.5.bn3.weight - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer3.5.bn3.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.conv1.weight - torch.Size([512, 1024, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.bn1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.bn1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.conv2.weight - torch.Size([512, 512, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.bn2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.bn2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.bn3.weight - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.bn3.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.downsample.0.weight - torch.Size([2048, 1024, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.downsample.1.weight - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.0.downsample.1.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.1.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.1.bn1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.1.bn1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.1.conv2.weight - torch.Size([512, 512, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.1.bn2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.1.bn2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.1.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.1.bn3.weight - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.1.bn3.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.2.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.2.bn1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.2.bn1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.2.conv2.weight - torch.Size([512, 512, 3, 3]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.2.bn2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.2.bn2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.2.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.2.bn3.weight - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.layer4.2.bn3.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.attnpool.positional_embedding - torch.Size([401, 2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.attnpool.k_proj.weight - torch.Size([2048, 2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.attnpool.k_proj.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.attnpool.q_proj.weight - torch.Size([2048, 2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.attnpool.q_proj.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.attnpool.v_proj.weight - torch.Size([2048, 2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.attnpool.v_proj.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.attnpool.c_proj.weight - torch.Size([1024, 2048]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+backbone.attnpool.c_proj.bias - torch.Size([1024]): 
+Initialized by user-defined `init_weights` in CLIPResNetWithAttention  
+
+text_encoder.positional_embedding - torch.Size([18, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.text_projection - torch.Size([512, 1024]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.0.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.1.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.2.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.3.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.4.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.5.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.6.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.7.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.8.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.9.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.10.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.attn.in_proj_weight - torch.Size([1536, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.attn.in_proj_bias - torch.Size([1536]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.attn.out_proj.weight - torch.Size([512, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.attn.out_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.ln_1.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.ln_1.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.mlp.c_fc.weight - torch.Size([2048, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.mlp.c_fc.bias - torch.Size([2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.mlp.c_proj.weight - torch.Size([512, 2048]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.mlp.c_proj.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.ln_2.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.transformer.resblocks.11.ln_2.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.token_embedding.weight - torch.Size([49408, 512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.ln_final.weight - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+text_encoder.ln_final.bias - torch.Size([512]): 
+Initialized by user-defined `init_weights` in CLIPTextContextEncoder  
+
+context_decoder.memory_proj.0.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.memory_proj.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.memory_proj.1.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.memory_proj.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.memory_proj.2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.memory_proj.2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.text_proj.0.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.text_proj.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.text_proj.1.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.text_proj.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.self_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.self_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.self_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.self_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.self_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.cross_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.cross_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.cross_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.cross_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.cross_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.mlp.0.weight - torch.Size([1024, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.mlp.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.mlp.3.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.0.mlp.3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.self_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.self_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.self_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.self_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.self_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.cross_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.cross_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.cross_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.cross_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.cross_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.mlp.0.weight - torch.Size([1024, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.mlp.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.mlp.3.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.1.mlp.3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.self_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.self_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.self_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.self_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.self_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.cross_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.cross_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.cross_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.cross_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.cross_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.mlp.0.weight - torch.Size([1024, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.mlp.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.mlp.3.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.decoder.2.mlp.3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.out_proj.0.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.out_proj.0.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.out_proj.1.weight - torch.Size([1024, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+context_decoder.out_proj.1.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+prompt_generator.prompt_proj.0.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+prompt_generator.prompt_proj.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+prompt_generator.prompt_proj.1.weight - torch.Size([1024, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+prompt_generator.prompt_proj.1.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+prompt_generator.prompt_proj.3.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+prompt_generator.prompt_proj.3.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+prompt_generator.prompt_proj.4.weight - torch.Size([512, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+prompt_generator.prompt_proj.4.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.memory_proj.0.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.memory_proj.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.memory_proj.1.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.memory_proj.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.memory_proj.2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.memory_proj.2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.text_proj.0.weight - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.text_proj.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.text_proj.1.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.text_proj.1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.self_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.self_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.self_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.self_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.self_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.cross_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.cross_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.cross_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.cross_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.cross_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.mlp.0.weight - torch.Size([1024, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.mlp.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.mlp.3.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.0.mlp.3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.self_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.self_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.self_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.self_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.self_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.cross_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.cross_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.cross_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.cross_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.cross_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.mlp.0.weight - torch.Size([1024, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.mlp.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.mlp.3.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.1.mlp.3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.self_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.self_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.self_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.self_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.self_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.cross_attn.q_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.cross_attn.k_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.cross_attn.v_proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.cross_attn.proj.weight - torch.Size([256, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.cross_attn.proj.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.norm1.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.norm1.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.norm2.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.norm2.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.norm3.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.norm3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.mlp.0.weight - torch.Size([1024, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.mlp.0.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.mlp.3.weight - torch.Size([256, 1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.decoder.2.mlp.3.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.out_proj.0.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.out_proj.0.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.out_proj.1.weight - torch.Size([1024, 256]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+visual_prompt_generator.out_proj.1.bias - torch.Size([1024]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+neck.lateral_convs.0.conv.weight - torch.Size([256, 256, 1, 1]): 
+Initialized by user-defined `init_weights` in ConvModule  
+
+neck.lateral_convs.1.conv.weight - torch.Size([256, 512, 1, 1]): 
+Initialized by user-defined `init_weights` in ConvModule  
+
+neck.lateral_convs.2.conv.weight - torch.Size([256, 1024, 1, 1]): 
+Initialized by user-defined `init_weights` in ConvModule  
+
+neck.lateral_convs.3.conv.weight - torch.Size([256, 2049, 1, 1]): 
+Initialized by user-defined `init_weights` in ConvModule  
+
+neck.smooth_convs.0.conv.weight - torch.Size([64, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in ConvModule  
+
+neck.smooth_convs.1.conv.weight - torch.Size([64, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in ConvModule  
+
+neck.smooth_convs.2.conv.weight - torch.Size([64, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in ConvModule  
+
+neck.smooth_convs.3.conv.weight - torch.Size([64, 256, 3, 3]): 
+Initialized by user-defined `init_weights` in ConvModule  
+
+det_head.binarize.0.weight - torch.Size([64, 256, 3, 3]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.binarize.1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.binarize.1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.binarize.3.weight - torch.Size([64, 64, 2, 2]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.binarize.3.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.binarize.4.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.binarize.4.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.binarize.6.weight - torch.Size([64, 1, 2, 2]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.binarize.6.bias - torch.Size([1]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.threshold.0.weight - torch.Size([64, 256, 3, 3]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.threshold.1.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.threshold.1.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.threshold.3.weight - torch.Size([64, 64, 2, 2]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.threshold.3.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.threshold.4.weight - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.threshold.4.bias - torch.Size([64]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.threshold.6.weight - torch.Size([64, 1, 2, 2]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+
+det_head.threshold.6.bias - torch.Size([1]): 
+The value is the same before and after calling `init_weights` of CLIPProduct  
+2023/11/14 18:13:19 - mmengine - WARNING - "FileClient" will be deprecated in future. Please use io functions in https://mmengine.readthedocs.io/en/latest/api/fileio.html#file-io
+2023/11/14 18:13:19 - mmengine - WARNING - "HardDiskBackend" is the alias of "LocalBackend" and the former will be deprecated in future.
+2023/11/14 18:13:19 - mmengine - INFO - Checkpoints will be saved to /home/biometrics/reserve/MultimodalProduct/work_dirs/clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji.
+2023/11/14 18:14:02 - mmengine - INFO - Epoch(train)    [1][ 5/32]  lr: 7.0000e-03  eta: 3 days, 19:07:15  time: 8.5437  data_time: 7.7576  memory: 19734  loss: 17.2757  loss_prob: 13.5095  loss_thr: 2.7744  loss_db: 0.9918
+2023/11/14 18:14:05 - mmengine - INFO - Epoch(train)    [1][10/32]  lr: 7.0000e-03  eta: 2 days, 0:32:05  time: 4.5513  data_time: 3.8863  memory: 19734  loss: 12.1758  loss_prob: 9.0540  loss_thr: 2.1301  loss_db: 0.9917
+2023/11/14 18:14:08 - mmengine - INFO - Epoch(train)    [1][15/32]  lr: 7.0000e-03  eta: 1 day, 10:15:37  time: 0.5479  data_time: 0.0086  memory: 19734  loss: 6.4934  loss_prob: 4.1200  loss_thr: 1.3795  loss_db: 0.9939
+2023/11/14 18:14:10 - mmengine - INFO - Epoch(train)    [1][20/32]  lr: 7.0000e-03  eta: 1 day, 3:06:40  time: 0.5347  data_time: 0.0039  memory: 19734  loss: 5.8480  loss_prob: 3.5953  loss_thr: 1.2565  loss_db: 0.9962
+2023/11/14 18:14:13 - mmengine - INFO - Epoch(train)    [1][25/32]  lr: 7.0000e-03  eta: 22:50:57  time: 0.5391  data_time: 0.0123  memory: 19734  loss: 5.7678  loss_prob: 3.5224  loss_thr: 1.2495  loss_db: 0.9959
+2023/11/14 18:14:16 - mmengine - INFO - Epoch(train)    [1][30/32]  lr: 7.0000e-03  eta: 19:58:17  time: 0.5354  data_time: 0.0108  memory: 19734  loss: 5.4260  loss_prob: 3.2175  loss_thr: 1.2107  loss_db: 0.9978
+2023/11/14 18:14:16 - mmengine - INFO - Exp name: clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji_20231114_181315
+2023/11/14 18:14:50 - mmengine - INFO - Epoch(train)    [2][ 5/32]  lr: 7.0000e-03  eta: 1 day, 2:00:10  time: 3.5638  data_time: 3.0239  memory: 19734  loss: 5.0537  loss_prob: 2.8933  loss_thr: 1.1604  loss_db: 1.0000
+2023/11/14 18:14:52 - mmengine - INFO - Epoch(train)    [2][10/32]  lr: 7.0000e-03  eta: 23:34:53  time: 3.6040  data_time: 3.0253  memory: 19734  loss: 5.0503  loss_prob: 2.8867  loss_thr: 1.1637  loss_db: 0.9999
+2023/11/14 18:14:55 - mmengine - INFO - Epoch(train)    [2][15/32]  lr: 7.0000e-03  eta: 21:40:56  time: 0.5370  data_time: 0.0057  memory: 19734  loss: 5.0378  loss_prob: 2.8744  loss_thr: 1.1635  loss_db: 0.9999
+2023/11/14 18:14:58 - mmengine - INFO - Epoch(train)    [2][20/32]  lr: 7.0000e-03  eta: 20:08:03  time: 0.5334  data_time: 0.0041  memory: 19734  loss: 5.0029  loss_prob: 2.8451  loss_thr: 1.1578  loss_db: 1.0000
+2023/11/14 18:15:00 - mmengine - INFO - Epoch(train)    [2][25/32]  lr: 7.0000e-03  eta: 18:52:23  time: 0.5348  data_time: 0.0047  memory: 19734  loss: 4.9853  loss_prob: 2.8297  loss_thr: 1.1557  loss_db: 1.0000
+2023/11/14 18:15:03 - mmengine - INFO - Epoch(train)    [2][30/32]  lr: 7.0000e-03  eta: 17:48:42  time: 0.5411  data_time: 0.0080  memory: 19734  loss: 4.9800  loss_prob: 2.8223  loss_thr: 1.1577  loss_db: 1.0000
+2023/11/14 18:15:04 - mmengine - INFO - Exp name: clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji_20231114_181315
+2023/11/14 18:15:37 - mmengine - INFO - Epoch(train)    [3][ 5/32]  lr: 7.0000e-03  eta: 21:13:32  time: 3.5453  data_time: 3.0441  memory: 19734  loss: 4.9786  loss_prob: 2.8222  loss_thr: 1.1565  loss_db: 1.0000
+2023/11/14 18:15:40 - mmengine - INFO - Epoch(train)    [3][10/32]  lr: 7.0000e-03  eta: 20:10:17  time: 3.5815  data_time: 3.0453  memory: 19734  loss: 4.9772  loss_prob: 2.8222  loss_thr: 1.1550  loss_db: 1.0000
+2023/11/14 18:15:42 - mmengine - INFO - Epoch(train)    [3][15/32]  lr: 7.0000e-03  eta: 19:15:32  time: 0.5382  data_time: 0.0064  memory: 19734  loss: 4.9733  loss_prob: 2.8207  loss_thr: 1.1526  loss_db: 1.0000
+2023/11/14 18:15:45 - mmengine - INFO - Epoch(train)    [3][20/32]  lr: 7.0000e-03  eta: 18:26:40  time: 0.5359  data_time: 0.0035  memory: 19734  loss: 4.9728  loss_prob: 2.8185  loss_thr: 1.1544  loss_db: 1.0000
+2023/11/14 18:15:48 - mmengine - INFO - Epoch(train)    [3][25/32]  lr: 7.0000e-03  eta: 17:44:10  time: 0.5400  data_time: 0.0077  memory: 19734  loss: 4.9751  loss_prob: 2.8167  loss_thr: 1.1584  loss_db: 1.0000
+2023/11/14 18:15:50 - mmengine - INFO - Epoch(train)    [3][30/32]  lr: 7.0000e-03  eta: 17:06:03  time: 0.5503  data_time: 0.0097  memory: 19734  loss: 4.9710  loss_prob: 2.8164  loss_thr: 1.1547  loss_db: 1.0000
+2023/11/14 18:15:51 - mmengine - INFO - Exp name: clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji_20231114_181315
+2023/11/14 18:16:26 - mmengine - INFO - Epoch(train)    [4][ 5/32]  lr: 7.0000e-03  eta: 19:39:22  time: 3.7189  data_time: 3.0680  memory: 19734  loss: 4.9845  loss_prob: 2.8200  loss_thr: 1.1645  loss_db: 1.0000
+2023/11/14 18:16:29 - mmengine - INFO - Epoch(train)    [4][10/32]  lr: 7.0000e-03  eta: 18:59:42  time: 3.7509  data_time: 3.0661  memory: 19734  loss: 4.9738  loss_prob: 2.8201  loss_thr: 1.1537  loss_db: 1.0000
+2023/11/14 18:16:31 - mmengine - INFO - Epoch(train)    [4][15/32]  lr: 7.0000e-03  eta: 18:23:19  time: 0.5302  data_time: 0.0025  memory: 19734  loss: 4.9674  loss_prob: 2.8168  loss_thr: 1.1507  loss_db: 1.0000
+2023/11/14 18:16:34 - mmengine - INFO - Epoch(train)    [4][20/32]  lr: 7.0000e-03  eta: 17:50:04  time: 0.5253  data_time: 0.0026  memory: 19734  loss: 4.9651  loss_prob: 2.8157  loss_thr: 1.1495  loss_db: 1.0000
+2023/11/14 18:16:37 - mmengine - INFO - Epoch(train)    [4][25/32]  lr: 7.0000e-03  eta: 17:19:58  time: 0.5329  data_time: 0.0065  memory: 19734  loss: 4.9693  loss_prob: 2.8160  loss_thr: 1.1534  loss_db: 1.0000
+2023/11/14 18:16:39 - mmengine - INFO - Epoch(train)    [4][30/32]  lr: 7.0000e-03  eta: 16:52:25  time: 0.5438  data_time: 0.0089  memory: 19734  loss: 4.9714  loss_prob: 2.8185  loss_thr: 1.1529  loss_db: 1.0000
+2023/11/14 18:16:40 - mmengine - INFO - Exp name: clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji_20231114_181315
+2023/11/14 18:17:13 - mmengine - INFO - Epoch(train)    [5][ 5/32]  lr: 7.0000e-03  eta: 18:39:19  time: 3.5112  data_time: 2.9993  memory: 19734  loss: 4.9747  loss_prob: 2.8168  loss_thr: 1.1579  loss_db: 1.0000
+2023/11/14 18:17:15 - mmengine - INFO - Epoch(train)    [5][10/32]  lr: 7.0000e-03  eta: 18:10:54  time: 3.5343  data_time: 3.0001  memory: 19734  loss: 4.9683  loss_prob: 2.8162  loss_thr: 1.1521  loss_db: 1.0000
+2023/11/14 18:17:18 - mmengine - INFO - Epoch(train)    [5][15/32]  lr: 7.0000e-03  eta: 17:44:11  time: 0.5254  data_time: 0.0050  memory: 19734  loss: 4.9677  loss_prob: 2.8165  loss_thr: 1.1511  loss_db: 1.0000
+2023/11/14 18:17:21 - mmengine - INFO - Epoch(train)    [5][20/32]  lr: 7.0000e-03  eta: 17:19:50  time: 0.5317  data_time: 0.0054  memory: 19734  loss: 4.9725  loss_prob: 2.8199  loss_thr: 1.1526  loss_db: 1.0000
+2023/11/14 18:17:24 - mmengine - INFO - Epoch(train)    [5][25/32]  lr: 7.0000e-03  eta: 16:57:28  time: 0.5545  data_time: 0.0078  memory: 19734  loss: 4.9735  loss_prob: 2.8188  loss_thr: 1.1547  loss_db: 1.0000
+2023/11/14 18:17:26 - mmengine - INFO - Epoch(train)    [5][30/32]  lr: 7.0000e-03  eta: 16:35:50  time: 0.5473  data_time: 0.0103  memory: 19734  loss: 4.9689  loss_prob: 2.8151  loss_thr: 1.1538  loss_db: 1.0000
+2023/11/14 18:17:27 - mmengine - INFO - Exp name: clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji_20231114_181315
+2023/11/14 18:17:27 - mmengine - INFO - Saving checkpoint at 5 epochs
+2023/11/14 18:17:59 - mmengine - INFO - Epoch(train)    [6][ 5/32]  lr: 7.0000e-03  eta: 17:54:46  time: 3.2997  data_time: 2.8146  memory: 19734  loss: 4.9680  loss_prob: 2.8165  loss_thr: 1.1515  loss_db: 1.0000
+2023/11/14 18:18:02 - mmengine - INFO - Epoch(train)    [6][10/32]  lr: 7.0000e-03  eta: 17:33:11  time: 3.3420  data_time: 2.8168  memory: 19734  loss: 4.9685  loss_prob: 2.8149  loss_thr: 1.1536  loss_db: 1.0000
+2023/11/14 18:18:04 - mmengine - INFO - Epoch(train)    [6][15/32]  lr: 7.0000e-03  eta: 17:12:52  time: 0.5430  data_time: 0.0093  memory: 19734  loss: 4.9671  loss_prob: 2.8151  loss_thr: 1.1520  loss_db: 1.0000
+2023/11/14 18:18:07 - mmengine - INFO - Epoch(train)    [6][20/32]  lr: 7.0000e-03  eta: 16:53:24  time: 0.5368  data_time: 0.0054  memory: 19734  loss: 4.9691  loss_prob: 2.8150  loss_thr: 1.1541  loss_db: 1.0000
+2023/11/14 18:18:10 - mmengine - INFO - Epoch(train)    [6][25/32]  lr: 7.0000e-03  eta: 16:35:17  time: 0.5378  data_time: 0.0060  memory: 19734  loss: 4.9694  loss_prob: 2.8145  loss_thr: 1.1549  loss_db: 1.0000
+2023/11/14 18:18:12 - mmengine - INFO - Epoch(train)    [6][30/32]  lr: 7.0000e-03  eta: 16:18:19  time: 0.5518  data_time: 0.0110  memory: 19734  loss: 4.9668  loss_prob: 2.8145  loss_thr: 1.1523  loss_db: 1.0000
+2023/11/14 18:18:13 - mmengine - INFO - Exp name: clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji_20231114_181315
+2023/11/14 18:18:46 - mmengine - INFO - Epoch(train)    [7][ 5/32]  lr: 7.0000e-03  eta: 17:31:06  time: 3.4955  data_time: 2.8154  memory: 19734  loss: 4.9695  loss_prob: 2.8163  loss_thr: 1.1533  loss_db: 1.0000
+2023/11/14 18:18:49 - mmengine - INFO - Epoch(train)    [7][10/32]  lr: 7.0000e-03  eta: 17:13:26  time: 3.5333  data_time: 2.8147  memory: 19734  loss: 4.9663  loss_prob: 2.8165  loss_thr: 1.1498  loss_db: 1.0000
+2023/11/14 18:18:51 - mmengine - INFO - Epoch(train)    [7][15/32]  lr: 7.0000e-03  eta: 16:56:35  time: 0.5375  data_time: 0.0057  memory: 19734  loss: 4.9664  loss_prob: 2.8148  loss_thr: 1.1516  loss_db: 1.0000
+2023/11/14 18:18:54 - mmengine - INFO - Epoch(train)    [7][20/32]  lr: 7.0000e-03  eta: 16:40:33  time: 0.5368  data_time: 0.0046  memory: 19734  loss: 4.9638  loss_prob: 2.8145  loss_thr: 1.1493  loss_db: 1.0000
+2023/11/14 18:18:57 - mmengine - INFO - Epoch(train)    [7][25/32]  lr: 7.0000e-03  eta: 16:25:18  time: 0.5395  data_time: 0.0063  memory: 19734  loss: 4.9663  loss_prob: 2.8146  loss_thr: 1.1517  loss_db: 1.0000
+2023/11/14 18:18:59 - mmengine - INFO - Epoch(train)    [7][30/32]  lr: 7.0000e-03  eta: 16:10:41  time: 0.5390  data_time: 0.0103  memory: 19734  loss: 4.9648  loss_prob: 2.8142  loss_thr: 1.1507  loss_db: 1.0000
+2023/11/14 18:19:00 - mmengine - INFO - Exp name: clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji_20231114_181315
+2023/11/14 18:19:32 - mmengine - INFO - Epoch(train)    [8][ 5/32]  lr: 7.0000e-03  eta: 17:12:51  time: 3.4690  data_time: 2.9182  memory: 19734  loss: 4.9582  loss_prob: 2.8152  loss_thr: 1.1431  loss_db: 1.0000
+2023/11/14 18:19:35 - mmengine - INFO - Epoch(train)    [8][10/32]  lr: 7.0000e-03  eta: 16:58:23  time: 3.5272  data_time: 2.9230  memory: 19734  loss: 4.9635  loss_prob: 2.8160  loss_thr: 1.1475  loss_db: 1.0000
+2023/11/14 18:19:38 - mmengine - INFO - Epoch(train)    [8][15/32]  lr: 7.0000e-03  eta: 16:44:00  time: 0.5495  data_time: 0.0077  memory: 19734  loss: 4.9624  loss_prob: 2.8150  loss_thr: 1.1474  loss_db: 1.0000
+2023/11/14 18:19:41 - mmengine - INFO - Epoch(train)    [8][20/32]  lr: 7.0000e-03  eta: 16:30:26  time: 0.5390  data_time: 0.0036  memory: 19734  loss: 4.9621  loss_prob: 2.8149  loss_thr: 1.1472  loss_db: 1.0000
+2023/11/14 18:19:43 - mmengine - INFO - Epoch(train)    [8][25/32]  lr: 7.0000e-03  eta: 16:17:22  time: 0.5461  data_time: 0.0084  memory: 19734  loss: 4.9618  loss_prob: 2.8152  loss_thr: 1.1466  loss_db: 1.0000
+2023/11/14 18:19:46 - mmengine - INFO - Epoch(train)    [8][30/32]  lr: 7.0000e-03  eta: 16:04:45  time: 0.5412  data_time: 0.0082  memory: 19734  loss: 4.9607  loss_prob: 2.8145  loss_thr: 1.1462  loss_db: 1.0000
+2023/11/14 18:19:47 - mmengine - INFO - Exp name: clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji_20231114_181315
+2023/11/14 18:20:20 - mmengine - INFO - Epoch(train)    [9][ 5/32]  lr: 7.0000e-03  eta: 17:01:21  time: 3.5554  data_time: 2.9654  memory: 19734  loss: 4.9573  loss_prob: 2.8152  loss_thr: 1.1421  loss_db: 1.0000
+2023/11/14 18:20:23 - mmengine - INFO - Epoch(train)    [9][10/32]  lr: 7.0000e-03  eta: 16:48:49  time: 3.6077  data_time: 2.9688  memory: 19734  loss: 4.9634  loss_prob: 2.8147  loss_thr: 1.1488  loss_db: 1.0000
+2023/11/14 18:20:25 - mmengine - INFO - Epoch(train)    [9][15/32]  lr: 7.0000e-03  eta: 16:36:16  time: 0.5485  data_time: 0.0079  memory: 19734  loss: 4.9672  loss_prob: 2.8143  loss_thr: 1.1529  loss_db: 1.0000
+2023/11/14 18:20:28 - mmengine - INFO - Epoch(train)    [9][20/32]  lr: 7.0000e-03  eta: 16:24:14  time: 0.5311  data_time: 0.0040  memory: 19734  loss: 4.9653  loss_prob: 2.8143  loss_thr: 1.1510  loss_db: 1.0000
+2023/11/14 18:20:31 - mmengine - INFO - Epoch(train)    [9][25/32]  lr: 7.0000e-03  eta: 16:12:47  time: 0.5401  data_time: 0.0054  memory: 19734  loss: 4.9595  loss_prob: 2.8138  loss_thr: 1.1457  loss_db: 1.0000
+2023/11/14 18:20:34 - mmengine - INFO - Epoch(train)    [9][30/32]  lr: 7.0000e-03  eta: 16:01:48  time: 0.5507  data_time: 0.0098  memory: 19734  loss: 4.9610  loss_prob: 2.8143  loss_thr: 1.1467  loss_db: 1.0000
+2023/11/14 18:20:34 - mmengine - INFO - Exp name: clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji_20231114_181315
+2023/11/14 18:21:08 - mmengine - INFO - Epoch(train)   [10][ 5/32]  lr: 7.0000e-03  eta: 16:53:19  time: 3.6105  data_time: 3.0473  memory: 19734  loss: 4.9634  loss_prob: 2.8143  loss_thr: 1.1491  loss_db: 1.0000
+2023/11/14 18:21:11 - mmengine - INFO - Epoch(train)   [10][10/32]  lr: 7.0000e-03  eta: 16:41:56  time: 3.6448  data_time: 3.0464  memory: 19734  loss: 4.9593  loss_prob: 2.8144  loss_thr: 1.1450  loss_db: 1.0000
+2023/11/14 18:21:13 - mmengine - INFO - Epoch(train)   [10][15/32]  lr: 7.0000e-03  eta: 16:30:46  time: 0.5320  data_time: 0.0030  memory: 19734  loss: 4.9641  loss_prob: 2.8146  loss_thr: 1.1495  loss_db: 1.0000
+2023/11/14 18:21:16 - mmengine - INFO - Epoch(train)   [10][20/32]  lr: 7.0000e-03  eta: 16:19:57  time: 0.5243  data_time: 0.0040  memory: 19734  loss: 4.9626  loss_prob: 2.8146  loss_thr: 1.1480  loss_db: 1.0000
+2023/11/14 18:21:19 - mmengine - INFO - Epoch(train)   [10][25/32]  lr: 7.0000e-03  eta: 16:09:41  time: 0.5335  data_time: 0.0083  memory: 19734  loss: 4.9595  loss_prob: 2.8148  loss_thr: 1.1447  loss_db: 1.0000
+2023/11/14 18:21:22 - mmengine - INFO - Epoch(train)   [10][30/32]  lr: 7.0000e-03  eta: 15:59:47  time: 0.5464  data_time: 0.0096  memory: 19734  loss: 4.9645  loss_prob: 2.8144  loss_thr: 1.1501  loss_db: 1.0000
+2023/11/14 18:21:22 - mmengine - INFO - Exp name: clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji_20231114_181315
+2023/11/14 18:21:22 - mmengine - INFO - Saving checkpoint at 10 epochs

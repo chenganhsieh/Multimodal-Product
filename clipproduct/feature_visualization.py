@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Author: Wenwen Yu
-# @Email: yuwenwen62@gmail.com
-# @Created Time: 5/14/22 6:41 PM
-
 import cv2
 import mmcv
 import numpy as np

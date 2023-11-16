@@ -48,7 +48,7 @@ prompt_class_names = ['the pixels of many arbitrary-shape text instances.']
 
 model = dict(
     type='CLIPProduct',
-    pretrained='/home/biometrics/reserve/Multimodal-Product/pretrained/RN50.pt',
+    pretrained='pretrained/RN50.pt',
     context_length=14, # len of class name
     class_names=prompt_class_names,
     use_learnable_prompt=True,  # predefine text + learnable prompt
@@ -99,7 +99,7 @@ model = dict(
     det_head=dict(
         type='DBHead',
         in_channels=256,
-        loss=dict(type='DBLoss', alpha=5.0, beta=10.0, bbce_loss=True),
+        module_loss=dict(type='DBModuleLoss'),
         postprocessor=dict(type='DBPostprocessor', text_repr_type='quad')),
     identity_head=dict(
         type='IdentityHead',
@@ -108,7 +108,10 @@ model = dict(
         reduction='mean',
         negative_ratio=3.0,
         bbce_loss=True),
-    # model training and testing settings
-    train_cfg=None,
-    test_cfg=None
+    data_preprocessor=dict(
+        type='TextDetDataPreprocessor',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        bgr_to_rgb=True,
+        pad_size_divisor=32)
 )

@@ -1,6 +1,6 @@
 auto_scale_lr = dict(base_batch_size=16)
 default_hooks = dict(
-    checkpoint=dict(interval=10, max_keep_ckpts=1, type='CheckpointHook'),
+    checkpoint=dict(interval=5, max_keep_ckpts=1, type='CheckpointHook'),
     logger=dict(interval=5, type='LoggerHook'),
     param_scheduler=dict(type='ParamSchedulerHook'),
     sampler_seed=dict(type='DistSamplerSeedHook'),
@@ -97,26 +97,35 @@ icdar2015_textdet_train = dict(
             type='PackTextDetInputs'),
     ],
     type='OCRDataset')
-launcher = 'none'
-load_from = 'checkpoints/textdet/dbnet_resnet50_1200e_icdar2015_20221102_115917-54f50589.pth'
+launcher = 'pytorch'
+load_from = None
 log_level = 'INFO'
 log_processor = dict(by_epoch=True, type='LogProcessor', window_size=10)
 model = dict(
     backbone=dict(
-        depth=50,
-        frozen_stages=-1,
-        init_cfg=dict(checkpoint='torchvision://resnet50', type='Pretrained'),
-        norm_cfg=dict(requires_grad=True, type='BN'),
-        norm_eval=True,
-        num_stages=4,
-        out_indices=(
-            0,
-            1,
-            2,
+        input_resolution=640,
+        layers=[
             3,
-        ),
+            4,
+            6,
+            3,
+        ],
+        output_dim=1024,
         style='pytorch',
-        type='mmdet.ResNet'),
+        type='CLIPResNetWithAttention'),
+    class_names=[
+        'the pixels of many arbitrary-shape text instances.',
+    ],
+    context_decoder=dict(
+        dropout=0.1,
+        outdim=1024,
+        style='pytorch',
+        transformer_heads=4,
+        transformer_layers=3,
+        transformer_width=256,
+        type='ContextDecoder',
+        visual_dim=1024),
+    context_length=14,
     data_preprocessor=dict(
         bgr_to_rgb=True,
         mean=[
@@ -136,21 +145,56 @@ model = dict(
         module_loss=dict(type='DBModuleLoss'),
         postprocessor=dict(text_repr_type='quad', type='DBPostprocessor'),
         type='DBHead'),
+    identity_head=dict(
+        bbce_loss=True,
+        downsample_ratio=32.0,
+        loss_weight=1.0,
+        negative_ratio=3.0,
+        reduction='mean',
+        type='IdentityHead'),
     neck=dict(
         in_channels=[
             256,
             512,
             1024,
-            2048,
+            2049,
         ],
         lateral_channels=256,
         type='FPNC'),
-    type='DBNet')
+    pretrained='pretrained/RN50.pt',
+    prompt_generator=dict(
+        style='pytorch',
+        token_embed_dim=512,
+        type='PromptGenerator',
+        visual_dim=1024),
+    text_encoder=dict(
+        context_length=18,
+        embed_dim=1024,
+        style='pytorch',
+        transformer_heads=8,
+        transformer_layers=12,
+        transformer_width=512,
+        type='CLIPTextContextEncoder'),
+    type='CLIPProduct',
+    use_learnable_prompt=True,
+    use_learnable_prompt_only=False,
+    visual_prompt_generator=dict(
+        dropout=0.1,
+        outdim=1024,
+        style='pytorch',
+        transformer_heads=4,
+        transformer_layers=3,
+        transformer_width=256,
+        type='ContextDecoder',
+        visual_dim=1024))
 optim_wrapper = dict(
-    optimizer=dict(lr=0.002, momentum=0.9, type='SGD', weight_decay=0.0001),
+    optimizer=dict(lr=0.007, momentum=0.9, type='SGD', weight_decay=0.0001),
     type='OptimWrapper')
 param_scheduler = [
-    dict(factor=1.0, type='ConstantLR'),
+    dict(begin=100, end=1200, eta_min=1e-07, power=0.9, type='PolyLR'),
+]
+prompt_class_names = [
+    'the pixels of many arbitrary-shape text instances.',
 ]
 randomness = dict(seed=None)
 resume = False
@@ -208,7 +252,7 @@ test_pipeline = [
         ),
         type='PackTextDetInputs'),
 ]
-train_cfg = dict(max_epochs=400, type='EpochBasedTrainLoop', val_interval=10)
+train_cfg = dict(max_epochs=1200, type='EpochBasedTrainLoop', val_interval=20)
 train_dataloader = dict(
     batch_size=16,
     dataset=dict(
@@ -353,11 +397,13 @@ val_dataloader = dict(
 val_evaluator = dict(type='HmeanIOUMetric')
 vis_backends = [
     dict(type='LocalVisBackend'),
+    dict(type='WandbVisBackend'),
 ]
 visualizer = dict(
     name='visualizer',
     type='TextDetLocalVisualizer',
     vis_backends=[
         dict(type='LocalVisBackend'),
+        dict(type='WandbVisBackend'),
     ])
 work_dir = './work_dirs/clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji'

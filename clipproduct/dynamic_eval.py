@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Author: Wenwen Yu
-# @Email: yuwenwen62@gmail.com
-# @Created Time: 3/1/22 9:23 PM
-
 # Copyright (c) OpenMMLab. All rights reserved.
 import os.path as osp
 import pickle

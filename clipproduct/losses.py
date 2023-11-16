@@ -1,13 +1,8 @@
-# -*- coding: utf-8 -*-
-# @Author: Wenwen Yu
-# @Email: yuwenwen62@gmail.com
-# @Created Time: 12/25/21 3:52 PM
-
 import torch
 import torch.nn.functional as F
 from torch import nn
 from mmocr.registry import MODELS
-from mmocr.models.common.losses.dice_loss import DiceLoss
+from mmocr.models.common.losses import MaskedDiceLoss
 
 
 @MODELS.register_module()
@@ -41,7 +36,7 @@ class TextSegLoss(nn.Module):
         self.with_logits=with_logits
         self.eps = eps
         self.bbce_loss = bbce_loss
-        self.dice_loss = DiceLoss(eps=eps)
+        self.dice_loss = MaskedDiceLoss(eps=eps)
 
     def bitmasks2tensor(self, bitmasks, target_sz):
         """Convert Bitmasks to tensor.

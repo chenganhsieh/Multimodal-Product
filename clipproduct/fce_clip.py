@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Author: Wenwen Yu
-# @Email: yuwenwen62@gmail.com
-# @Created Time: 12/25/21 10:05 AM
-
 import warnings
 
 import numpy as np

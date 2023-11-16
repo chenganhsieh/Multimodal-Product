@@ -5,12 +5,12 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
-from timm.models.layers import drop, drop_path, trunc_normal_
+from timm.models.layers import drop_path, trunc_normal_
 from mmseg.models.backbones import ResNet
 from mmseg.models.backbones import VisionTransformer as MMVisionTransformer
-from mmdet.registry import MODELS
-from mmocr.utils import get_root_logger
-from mmcv.utils import print_log
+from mmocr.registry import MODELS
+from mmengine.logging import MMLogger
+from mmengine.logging import print_log
 
 from timm.models.resnet import ResNet as TimmResNet
 from timm.models.resnet import Bottleneck as TimmBottleneck
@@ -112,93 +112,93 @@ class AttentionPool2d(nn.Module):
         feature_map = x[:, :, 1:].reshape(B, -1, H, W)# NCHW
         return global_feat, feature_map
 
-@MODELS.register_module()
-class CLIPResNet(nn.Module):
-    """
-    A ResNet class that is similar to torchvision's but contains the following changes:
-    - There are now 3 "stem" convolutions as opposed to 1, with an average pool instead of a max pool.
-    - Performs anti-aliasing strided convolutions, where an avgpool is prepended to convolutions with stride > 1
-    - The final pooling layer is a QKV attention instead of an average pool
-    """
+# @MODELS.register_module()
+# class CLIPResNet(nn.Module):
+#     """
+#     A ResNet class that is similar to torchvision's but contains the following changes:
+#     - There are now 3 "stem" convolutions as opposed to 1, with an average pool instead of a max pool.
+#     - Performs anti-aliasing strided convolutions, where an avgpool is prepended to convolutions with stride > 1
+#     - The final pooling layer is a QKV attention instead of an average pool
+#     """
 
-    def __init__(self, layers, output_dim=512, input_resolution=224, width=64, pretrained=None,
-                 out_indices=(0, 1, 2, 3), **kwargs):
-        super().__init__()
-        self.pretrained = pretrained
-        self.output_dim = output_dim
-        self.input_resolution = input_resolution
-        self.out_indices = out_indices
+#     def __init__(self, layers, output_dim=512, input_resolution=224, width=64, pretrained=None,
+#                  out_indices=(0, 1, 2, 3), **kwargs):
+#         super().__init__()
+#         self.pretrained = pretrained
+#         self.output_dim = output_dim
+#         self.input_resolution = input_resolution
+#         self.out_indices = out_indices
 
-        # the 3-layer stem
-        self.conv1 = nn.Conv2d(3, width // 2, kernel_size=3, stride=2, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(width // 2)
-        self.conv2 = nn.Conv2d(width // 2, width // 2, kernel_size=3, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(width // 2)
-        self.conv3 = nn.Conv2d(width // 2, width, kernel_size=3, padding=1, bias=False)
-        self.bn3 = nn.BatchNorm2d(width)
-        self.avgpool = nn.AvgPool2d(2)
-        self.relu = nn.ReLU(inplace=True)
+#         # the 3-layer stem
+#         self.conv1 = nn.Conv2d(3, width // 2, kernel_size=3, stride=2, padding=1, bias=False)
+#         self.bn1 = nn.BatchNorm2d(width // 2)
+#         self.conv2 = nn.Conv2d(width // 2, width // 2, kernel_size=3, padding=1, bias=False)
+#         self.bn2 = nn.BatchNorm2d(width // 2)
+#         self.conv3 = nn.Conv2d(width // 2, width, kernel_size=3, padding=1, bias=False)
+#         self.bn3 = nn.BatchNorm2d(width)
+#         self.avgpool = nn.AvgPool2d(2)
+#         self.relu = nn.ReLU(inplace=True)
 
-        # residual layers
-        self._inplanes = width  # this is a *mutable* variable used during construction
-        self.layer1 = self._make_layer(width, layers[0])
-        self.layer2 = self._make_layer(width * 2, layers[1], stride=2)
-        self.layer3 = self._make_layer(width * 4, layers[2], stride=2)
-        self.layer4 = self._make_layer(width * 8, layers[3], stride=2)
+#         # residual layers
+#         self._inplanes = width  # this is a *mutable* variable used during construction
+#         self.layer1 = self._make_layer(width, layers[0])
+#         self.layer2 = self._make_layer(width * 2, layers[1], stride=2)
+#         self.layer3 = self._make_layer(width * 4, layers[2], stride=2)
+#         self.layer4 = self._make_layer(width * 8, layers[3], stride=2)
 
-        if self.pretrained is not None:
-            self.init_weights()
+#         if self.pretrained is not None:
+#             self.init_weights()
 
-    def init_weights(self, pretrained=None):
-        pretrained = pretrained or self.pretrained
-        if isinstance(pretrained, str):
-            checkpoint = torch.jit.load(pretrained, map_location='cpu').float().state_dict()
+#     def init_weights(self, pretrained=None):
+#         pretrained = pretrained or self.pretrained
+#         if isinstance(pretrained, str):
+#             checkpoint = torch.jit.load(pretrained, map_location='cpu').float().state_dict()
 
-            state_dict = {}
+#             state_dict = {}
 
-            for k in checkpoint.keys():
-                if k.startswith('visual.'):
-                    new_k = k.replace('visual.', '')
-                    state_dict[new_k] = checkpoint[k]
+#             for k in checkpoint.keys():
+#                 if k.startswith('visual.'):
+#                     new_k = k.replace('visual.', '')
+#                     state_dict[new_k] = checkpoint[k]
 
-            u, w = self.load_state_dict(state_dict, False)
-            # logger.info(f'{u} {w} are misaligned params in CLIPResNet')
-            print_log(f'{u} {w} are misaligned params in CLIPResNet', get_root_logger())
-            logger = get_root_logger()
+#             u, w = self.load_state_dict(state_dict, False)
+#             # logger.info(f'{u} {w} are misaligned params in CLIPResNet')
+#             print_log(f'{u} {w} are misaligned params in CLIPResNet', MMLogger.get_current_instance())
+#             logger = MMLogger.get_current_instance()
 
-    def _make_layer(self, planes, blocks, stride=1):
-        layers = [Bottleneck(self._inplanes, planes, stride)]
+#     def _make_layer(self, planes, blocks, stride=1):
+#         layers = [Bottleneck(self._inplanes, planes, stride)]
 
-        self._inplanes = planes * Bottleneck.expansion
-        for _ in range(1, blocks):
-            layers.append(Bottleneck(self._inplanes, planes))
+#         self._inplanes = planes * Bottleneck.expansion
+#         for _ in range(1, blocks):
+#             layers.append(Bottleneck(self._inplanes, planes))
 
-        return nn.Sequential(*layers)
+#         return nn.Sequential(*layers)
 
-    def forward(self, x):
-        def stem(x):
-            for conv, bn in [(self.conv1, self.bn1), (self.conv2, self.bn2), (self.conv3, self.bn3)]:
-                x = self.relu(bn(conv(x)))
-            x = self.avgpool(x)
-            return x
+#     def forward(self, x):
+#         def stem(x):
+#             for conv, bn in [(self.conv1, self.bn1), (self.conv2, self.bn2), (self.conv3, self.bn3)]:
+#                 x = self.relu(bn(conv(x)))
+#             x = self.avgpool(x)
+#             return x
 
-        x = x.type(self.conv1.weight.dtype)
-        x = stem(x)
+#         x = x.type(self.conv1.weight.dtype)
+#         x = stem(x)
 
-        outs = []
-        x = self.layer1(x)
-        outs.append(x)
-        x = self.layer2(x)
-        outs.append(x)
-        x = self.layer3(x)
-        outs.append(x)
-        x = self.layer4(x)
-        outs.append(x)
+#         outs = []
+#         x = self.layer1(x)
+#         outs.append(x)
+#         x = self.layer2(x)
+#         outs.append(x)
+#         x = self.layer3(x)
+#         outs.append(x)
+#         x = self.layer4(x)
+#         outs.append(x)
 
-        final_outs = []
-        for i in self.out_indices:
-            final_outs.append(outs[i])
-        return tuple(final_outs)
+#         final_outs = []
+#         for i in self.out_indices:
+#             final_outs.append(outs[i])
+#         return tuple(final_outs)
 
 
 @MODELS.register_module()
@@ -253,7 +253,7 @@ class CLIPResNetWithAttention(nn.Module):
 
                     if 'positional_embedding' in new_k:
                         if self.attnpool.positional_embedding.shape != state_dict[new_k].shape:
-                            print_log(f'Resize the pos_embed shape from {state_dict[new_k].shape} to {self.attnpool.positional_embedding.shape}', get_root_logger())
+                            print_log(f'Resize the pos_embed shape from {state_dict[new_k].shape} to {self.attnpool.positional_embedding.shape}', MMLogger.get_current_instance())
                             cls_pos = state_dict[new_k][0:1, :]
                             H = W = self.input_resolution // 32
                             old_h = int(math.sqrt(state_dict[new_k][1:,].shape[0]))
@@ -264,7 +264,7 @@ class CLIPResNetWithAttention(nn.Module):
                             assert self.attnpool.positional_embedding.shape == state_dict[new_k].shape
 
             u, w = self.load_state_dict(state_dict, False)
-            print_log(f'{u} {w} are misaligned params in CLIPResNetWithAttention', get_root_logger())
+            print_log(f'{u} {w} are misaligned params in CLIPResNetWithAttention', MMLogger.get_current_instance())
 
     def _make_layer(self, planes, blocks, stride=1):
         layers = [Bottleneck(self._inplanes, planes, stride)]
@@ -373,7 +373,7 @@ class CLIPResNetWithGCAndStage(nn.Module):
 
                     if 'positional_embedding' in new_k and self.pix_text_match_stage_index==3:
                         if self.attnpool.positional_embedding.shape != state_dict[new_k].shape:
-                            print_log(f'Resize the pos_embed shape from {state_dict[new_k].shape} to {self.attnpool.positional_embedding.shape}', get_root_logger())
+                            print_log(f'Resize the pos_embed shape from {state_dict[new_k].shape} to {self.attnpool.positional_embedding.shape}', MMLogger.get_current_instance())
                             cls_pos = state_dict[new_k][0:1, :]
                             H = W = self.input_resolution // 32
                             old_h = int(math.sqrt(state_dict[new_k][1:,].shape[0]))
@@ -384,7 +384,7 @@ class CLIPResNetWithGCAndStage(nn.Module):
                             assert self.attnpool.positional_embedding.shape == state_dict[new_k].shape
 
             u, w = self.load_state_dict(state_dict, False)
-            print_log(f'{u} {w} are misaligned params in CLIPResNetWithStage', get_root_logger())
+            print_log(f'{u} {w} are misaligned params in CLIPResNetWithStage', MMLogger.get_current_instance())
 
     def _make_layer(self, planes, blocks, stride=1):
         layers = [Bottleneck(self._inplanes, planes, stride)]
@@ -763,7 +763,7 @@ class CLIPVisionTransformer(nn.Module):
 
             if 'positional_embedding' in state_dict.keys():
                 if self.positional_embedding.shape != state_dict['positional_embedding'].shape:
-                    print_log(f'Resize the pos_embed shape from {state_dict["positional_embedding"].shape} to {self.positional_embedding.shape}', get_root_logger())
+                    print_log(f'Resize the pos_embed shape from {state_dict["positional_embedding"].shape} to {self.positional_embedding.shape}', MMLogger.get_current_instance())
                     cls_pos = state_dict["positional_embedding"][0:1, :]
                     spatial_pos = F.interpolate(state_dict["positional_embedding"][1:,].reshape(1, 14, 14, 768).permute(0, 3, 1, 2), size=(self.spatial_size, self.spatial_size), mode='bilinear')
                     spatial_pos = spatial_pos.reshape(768, self.spatial_size*self.spatial_size).permute(1, 0)
@@ -772,7 +772,7 @@ class CLIPVisionTransformer(nn.Module):
                     assert self.positional_embedding.shape == state_dict['positional_embedding'].shape
 
             u, w = self.load_state_dict(state_dict, False)
-            print_log(f'{u} {w} are misaligned params in vision transformer', get_root_logger())
+            print_log(f'{u} {w} are misaligned params in vision transformer', MMLogger.get_current_instance())
 
     def forward(self, x: torch.Tensor):
         x = self.conv1(x)  # shape = [*, width, grid, grid]
@@ -857,11 +857,11 @@ class CLIPTextEncoder(nn.Module):
                 if k == 'positional_embedding' or k == 'text_projection' or k.startswith('token_embedding') or k.startswith('ln_final'):
                     if k == 'positional_embedding' and checkpoint[k].size(0) > self.context_length:
                         checkpoint[k] = checkpoint[k][:self.context_length]
-                        print_log(f'positional_embedding is tuncated from 77 to {self.context_length}', get_root_logger())
+                        print_log(f'positional_embedding is tuncated from 77 to {self.context_length}', MMLogger.get_current_instance())
                     state_dict[k] = checkpoint[k]
              
             u, w = self.load_state_dict(state_dict, False)
-            print_log(f'{u} {w} are misaligned params in text encoder', get_root_logger())
+            print_log(f'{u} {w} are misaligned params in text encoder', MMLogger.get_current_instance())
 
 
     def build_attention_mask(self):
@@ -929,11 +929,11 @@ class CLIPTextContextEncoder(nn.Module):
                 if k == 'positional_embedding' or k == 'text_projection' or k.startswith('token_embedding') or k.startswith('ln_final'):
                     if k == 'positional_embedding' and checkpoint[k].size(0) > self.context_length:
                         checkpoint[k] = checkpoint[k][:self.context_length]
-                        print_log(f'positional_embedding is tuncated from 77 to {self.context_length}', get_root_logger())
+                        print_log(f'positional_embedding is tuncated from 77 to {self.context_length}', MMLogger.get_current_instance())
                     state_dict[k] = checkpoint[k]
              
             u, w = self.load_state_dict(state_dict, False)
-            print_log(f'{u} {w} are misaligned params in text encoder', get_root_logger())
+            print_log(f'{u} {w} are misaligned params in text encoder', MMLogger.get_current_instance())
 
 
     def build_attention_mask(self):

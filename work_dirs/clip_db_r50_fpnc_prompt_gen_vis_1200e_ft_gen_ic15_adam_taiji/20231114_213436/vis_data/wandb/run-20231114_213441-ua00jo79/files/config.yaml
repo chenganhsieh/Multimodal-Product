@@ -1,0 +1,503 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    python_version: 3.8.18
+    cli_version: 0.16.0
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: true
+    start_time: 1700015681.06053
+    t:
+      1:
+      - 1
+      - 37
+      - 38
+      - 41
+      - 49
+      - 55
+      - 60
+      - 61
+      - 63
+      - 82
+      2:
+      - 1
+      - 37
+      - 38
+      - 41
+      - 49
+      - 55
+      - 60
+      - 61
+      - 63
+      - 82
+      3:
+      - 23
+      4: 3.8.18
+      5: 0.16.0
+      8:
+      - 2
+      - 5
+      13: linux-x86_64
+train_pipeline:
+  desc: null
+  value:
+  - type: LoadImageFromFile
+    color_type: color_ignore_orientation
+  - type: LoadOCRAnnotations
+    with_bbox: true
+    with_polygon: true
+    with_label: true
+  - type: TorchVisionWrapper
+    op: ColorJitter
+    brightness: 0.12549019607843137
+    saturation: 0.5
+  - type: ImgAugWrapper
+    args:
+    - - Fliplr
+      - 0.5
+    - cls: Affine
+      rotate:
+      - -10
+      - 10
+    - - Resize
+      - - 0.5
+        - 3.0
+  - type: RandomCrop
+    min_side_ratio: 0.1
+  - type: Resize
+    scale:
+    - 640
+    - 640
+    keep_ratio: true
+  - type: Pad
+    size:
+    - 640
+    - 640
+  - type: PackTextDetInputs
+    meta_keys:
+    - img_path
+    - ori_shape
+    - img_shape
+test_pipeline:
+  desc: null
+  value:
+  - type: LoadImageFromFile
+    color_type: color_ignore_orientation
+  - type: Resize
+    scale:
+    - 4068
+    - 1024
+    keep_ratio: true
+  - type: LoadOCRAnnotations
+    with_polygon: true
+    with_bbox: true
+    with_label: true
+  - type: PackTextDetInputs
+    meta_keys:
+    - img_path
+    - ori_shape
+    - img_shape
+    - scale_factor
+prompt_class_names:
+  desc: null
+  value:
+  - the pixels of many arbitrary-shape text instances.
+model:
+  desc: null
+  value:
+    type: CLIPProduct
+    pretrained: pretrained/RN50.pt
+    context_length: 14
+    class_names:
+    - the pixels of many arbitrary-shape text instances.
+    use_learnable_prompt: true
+    use_learnable_prompt_only: false
+    backbone:
+      type: CLIPResNetWithAttention
+      layers:
+      - 3
+      - 4
+      - 6
+      - 3
+      output_dim: 1024
+      input_resolution: 640
+      style: pytorch
+    text_encoder:
+      type: CLIPTextContextEncoder
+      context_length: 18
+      embed_dim: 1024
+      transformer_width: 512
+      transformer_heads: 8
+      transformer_layers: 12
+      style: pytorch
+    prompt_generator:
+      type: PromptGenerator
+      visual_dim: 1024
+      token_embed_dim: 512
+      style: pytorch
+    context_decoder:
+      type: ContextDecoder
+      transformer_width: 256
+      transformer_heads: 4
+      transformer_layers: 3
+      visual_dim: 1024
+      dropout: 0.1
+      outdim: 1024
+      style: pytorch
+    visual_prompt_generator:
+      type: ContextDecoder
+      transformer_width: 256
+      transformer_heads: 4
+      transformer_layers: 3
+      visual_dim: 1024
+      dropout: 0.1
+      outdim: 1024
+      style: pytorch
+    neck:
+      type: FPNC
+      in_channels:
+      - 256
+      - 512
+      - 1024
+      - 2049
+      lateral_channels: 256
+    det_head:
+      type: DBHead
+      in_channels: 256
+      module_loss:
+        type: DBModuleLoss
+      postprocessor:
+        type: DBPostprocessor
+        text_repr_type: quad
+    identity_head:
+      type: IdentityHead
+      downsample_ratio: 32.0
+      loss_weight: 1.0
+      reduction: mean
+      negative_ratio: 3.0
+      bbce_loss: true
+    data_preprocessor:
+      type: TextDetDataPreprocessor
+      mean:
+      - 123.675
+      - 116.28
+      - 103.53
+      std:
+      - 58.395
+      - 57.12
+      - 57.375
+      bgr_to_rgb: true
+      pad_size_divisor: 32
+icdar2015_textdet_data_root:
+  desc: null
+  value: data/icdar2015
+icdar2015_textdet_train:
+  desc: null
+  value:
+    type: OCRDataset
+    data_root: data/icdar2015
+    ann_file: textdet_train.json
+    filter_cfg:
+      filter_empty_gt: true
+      min_size: 32
+    pipeline:
+    - type: LoadImageFromFile
+      color_type: color_ignore_orientation
+    - type: LoadOCRAnnotations
+      with_bbox: true
+      with_polygon: true
+      with_label: true
+    - type: TorchVisionWrapper
+      op: ColorJitter
+      brightness: 0.12549019607843137
+      saturation: 0.5
+    - type: ImgAugWrapper
+      args:
+      - - Fliplr
+        - 0.5
+      - cls: Affine
+        rotate:
+        - -10
+        - 10
+      - - Resize
+        - - 0.5
+          - 3.0
+    - type: RandomCrop
+      min_side_ratio: 0.1
+    - type: Resize
+      scale:
+      - 640
+      - 640
+      keep_ratio: true
+    - type: Pad
+      size:
+      - 640
+      - 640
+    - type: PackTextDetInputs
+      meta_keys:
+      - img_path
+      - ori_shape
+      - img_shape
+icdar2015_textdet_test:
+  desc: null
+  value:
+    type: OCRDataset
+    data_root: data/icdar2015
+    ann_file: textdet_test.json
+    test_mode: true
+    pipeline:
+    - type: LoadImageFromFile
+      color_type: color_ignore_orientation
+    - type: Resize
+      scale:
+      - 4068
+      - 1024
+      keep_ratio: true
+    - type: LoadOCRAnnotations
+      with_polygon: true
+      with_bbox: true
+      with_label: true
+    - type: PackTextDetInputs
+      meta_keys:
+      - img_path
+      - ori_shape
+      - img_shape
+      - scale_factor
+default_scope:
+  desc: null
+  value: mmocr
+env_cfg:
+  desc: null
+  value:
+    cudnn_benchmark: false
+    mp_cfg:
+      mp_start_method: fork
+      opencv_num_threads: 0
+    dist_cfg:
+      backend: nccl
+randomness:
+  desc: null
+  value:
+    seed: null
+default_hooks:
+  desc: null
+  value:
+    timer:
+      type: IterTimerHook
+    logger:
+      type: LoggerHook
+      interval: 5
+    param_scheduler:
+      type: ParamSchedulerHook
+    checkpoint:
+      type: CheckpointHook
+      interval: 5
+      max_keep_ckpts: 1
+    sampler_seed:
+      type: DistSamplerSeedHook
+    sync_buffer:
+      type: SyncBuffersHook
+    visualization:
+      type: VisualizationHook
+      interval: 1
+      enable: false
+      show: false
+      draw_gt: false
+      draw_pred: false
+log_level:
+  desc: null
+  value: INFO
+log_processor:
+  desc: null
+  value:
+    type: LogProcessor
+    window_size: 10
+    by_epoch: true
+load_from:
+  desc: null
+  value: null
+resume:
+  desc: null
+  value: false
+val_evaluator:
+  desc: null
+  value:
+    type: HmeanIOUMetric
+test_evaluator:
+  desc: null
+  value:
+    type: HmeanIOUMetric
+vis_backends:
+  desc: null
+  value:
+  - type: LocalVisBackend
+  - type: WandbVisBackend
+visualizer:
+  desc: null
+  value:
+    type: TextDetLocalVisualizer
+    name: visualizer
+    vis_backends:
+    - type: LocalVisBackend
+    - type: WandbVisBackend
+optim_wrapper:
+  desc: null
+  value:
+    type: OptimWrapper
+    optimizer:
+      type: SGD
+      lr: 0.007
+      momentum: 0.9
+      weight_decay: 0.0001
+train_cfg:
+  desc: null
+  value:
+    type: EpochBasedTrainLoop
+    max_epochs: 1200
+    val_interval: 20
+val_cfg:
+  desc: null
+  value:
+    type: ValLoop
+test_cfg:
+  desc: null
+  value:
+    type: TestLoop
+param_scheduler:
+  desc: null
+  value:
+  - type: PolyLR
+    power: 0.9
+    eta_min: 1.0e-07
+    begin: 100
+    end: 1200
+train_dataloader:
+  desc: null
+  value:
+    batch_size: 16
+    num_workers: 24
+    persistent_workers: true
+    sampler:
+      type: DefaultSampler
+      shuffle: true
+    dataset:
+      type: OCRDataset
+      data_root: data/icdar2015
+      ann_file: textdet_train.json
+      filter_cfg:
+        filter_empty_gt: true
+        min_size: 32
+      pipeline:
+      - type: LoadImageFromFile
+        color_type: color_ignore_orientation
+      - type: LoadOCRAnnotations
+        with_bbox: true
+        with_polygon: true
+        with_label: true
+      - type: TorchVisionWrapper
+        op: ColorJitter
+        brightness: 0.12549019607843137
+        saturation: 0.5
+      - type: ImgAugWrapper
+        args:
+        - - Fliplr
+          - 0.5
+        - cls: Affine
+          rotate:
+          - -10
+          - 10
+        - - Resize
+          - - 0.5
+            - 3.0
+      - type: RandomCrop
+        min_side_ratio: 0.1
+      - type: Resize
+        scale:
+        - 640
+        - 640
+        keep_ratio: true
+      - type: Pad
+        size:
+        - 640
+        - 640
+      - type: PackTextDetInputs
+        meta_keys:
+        - img_path
+        - ori_shape
+        - img_shape
+val_dataloader:
+  desc: null
+  value:
+    batch_size: 1
+    num_workers: 4
+    persistent_workers: true
+    sampler:
+      type: DefaultSampler
+      shuffle: false
+    dataset:
+      type: OCRDataset
+      data_root: data/icdar2015
+      ann_file: textdet_test.json
+      test_mode: true
+      pipeline:
+      - type: LoadImageFromFile
+        color_type: color_ignore_orientation
+      - type: Resize
+        scale:
+        - 4068
+        - 1024
+        keep_ratio: true
+      - type: LoadOCRAnnotations
+        with_polygon: true
+        with_bbox: true
+        with_label: true
+      - type: PackTextDetInputs
+        meta_keys:
+        - img_path
+        - ori_shape
+        - img_shape
+        - scale_factor
+test_dataloader:
+  desc: null
+  value:
+    batch_size: 1
+    num_workers: 4
+    persistent_workers: true
+    sampler:
+      type: DefaultSampler
+      shuffle: false
+    dataset:
+      type: OCRDataset
+      data_root: data/icdar2015
+      ann_file: textdet_test.json
+      test_mode: true
+      pipeline:
+      - type: LoadImageFromFile
+        color_type: color_ignore_orientation
+      - type: Resize
+        scale:
+        - 4068
+        - 1024
+        keep_ratio: true
+      - type: LoadOCRAnnotations
+        with_polygon: true
+        with_bbox: true
+        with_label: true
+      - type: PackTextDetInputs
+        meta_keys:
+        - img_path
+        - ori_shape
+        - img_shape
+        - scale_factor
+auto_scale_lr:
+  desc: null
+  value:
+    base_batch_size: 16
+launcher:
+  desc: null
+  value: pytorch
+work_dir:
+  desc: null
+  value: ./work_dirs/clip_db_r50_fpnc_prompt_gen_vis_1200e_ft_gen_ic15_adam_taiji
